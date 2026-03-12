@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOIDSCREAM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { 
+      background: #0a001f; 
+      font-family: system-ui, sans-serif; 
+    }
+    .neon-pink { 
+      color: #ff00cc; 
+      text-shadow: 0 0 20px #ff00cc, 0 0 40px #ff00cc, 0 0 60px #ff0088; 
+    }
+    .neon-cyan { 
+      color: #00ffff; 
+      text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff; 
+    }
+    .neon-lime { 
+      color: #ccff00; 
+      text-shadow: 0 0 15px #ccff00, 0 0 30px #ccff00; 
+    }
+    .card { 
+      background: #1a0033; 
+      border: 3px solid #ff00cc; 
+      box-shadow: 0 0 35px #ff00cc; 
+      transition: all 0.3s ease;
+    }
+    .post:hover { 
+      box-shadow: 0 0 55px #00ffff; 
+      transform: scale(1.02); 
+    }
+    
+    /* ULTRA STYLIZED SCREAM BUTTON */
+    .void-scream-btn {
+      background: linear-gradient(45deg, #ff00cc, #00ffff);
+      color: #0a001f;
+      font-size: 2.75rem;
+      font-weight: 900;
+      letter-spacing: -3px;
+      padding: 32px 72px;
+      border-radius: 9999px;
+      box-shadow: 
+        0 0 35px #ff00cc,
+        0 0 70px #ff00cc,
+        0 0 110px #00ffff,
+        0 0 140px #ccff00;
+      transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+      text-transform: uppercase;
+    }
+    .void-scream-btn:hover {
+      transform: scale(1.09) translateY(-8px);
+      box-shadow: 
+        0 0 55px #ff00cc,
+        0 0 100px #ff00cc,
+        0 0 150px #00ffff,
+        0 0 190px #ccff00;
+    }
+    .void-scream-btn:active {
+      transform: scale(0.96);
+    }
+    
+    .scream-text { 
+      font-size: 1.1rem; 
+      line-height: 1.6; 
+    }
+    
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+    @media (min-width: 640px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .grid-container { grid-template-columns: repeat(3, 1fr); } }
+    
+    .fall-away {
+      animation: fallAway 0.85s ease-in forwards;
+    }
+    @keyframes fallAway {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(160px) rotate(14deg); }
+    }
+    
+    .empty-void {
+      text-align: center;
+      padding: 80px 20px;
+      color: #ff00cc;
+      text-shadow: 0 0 30px #ff00cc;
+    }
+  </style>
+</head>
+<body class="text-white min-h-screen pb-20">
+
+  <div class="max-w-6xl mx-auto pt-10 px-4">
+    <div class="flex items-center justify-between mb-12">
+      <div>
+        <h1 class="text-7xl font-black tracking-[-6px] neon-pink">VOIDSCREAM</h1>
+        <p class="neon-cyan text-3xl -mt-3">3×3 neon chamber</p>
+      </div>
+    </div>
+
+    <div id="feed" class="grid-container"></div>
+
+    <!-- STYLIZED CENTERED SCREAM BUTTON -->
+    <div class="flex justify-center mt-20">
+      <button onclick="showScreamModal()" 
+              class="void-scream-btn flex items-center gap-6">
+        <i class="fa-solid fa-skull text-5xl"></i>
+        SCREAM
+      </button>
+    </div>
+
+    <!-- Dark humor footer -->
+    <div class="text-center mt-16 text-xs neon-cyan/50 tracking-widest">
+      MAX 9 SCREAMS VISIBLE • THE VOID EATS THE REST • THEY NEVER EXISTED ANYWAY
+    </div>
+  </div>
+
+  <!-- Scream Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+    <div class="card rounded-3xl p-8 w-full max-w-lg mx-4">
+      <div class="mb-6">
+        <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
+        <input id="screamName" type="text" 
+               class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-5 text-2xl neon-lime focus:outline-none">
+      </div>
+      
+      <textarea id="screamText" class="w-full h-56 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-7 text-xl neon-cyan placeholder-zinc-500 focus:outline-none scream-text" 
+                placeholder="let it all out into the void..."></textarea>
+      
+      <input id="imgUrl" type="text" placeholder="image link (optional)" 
+             class="mt-6 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-5 neon-pink text-sm">
+
+      <div class="flex gap-4 mt-10">
+        <button onclick="hideModal()" 
+                class="flex-1 py-7 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">
+          NEVERMIND
+        </button>
+        <button onclick="screamNow()" 
+                class="flex-1 py-7 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-2xl rounded-3xl shadow-[0_0_40px_#ff00cc]">
+          SCREAM INTO VOID
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let posts = JSON.parse(localStorage.getItem('voidscream_posts')) || [];
+
+    let lastScreamer = localStorage.getItem('lastScreamer') || "";
+
+    function savePosts() {
+      localStorage.setItem('voidscream_posts', JSON.stringify(posts));
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('feed');
+      
+      if (posts.length === 0) {
+        container.innerHTML = `
+          <div class="empty-void col-span-full">
+            <div class="text-6xl mb-6">🌌</div>
+            <div class="text-4xl font-black tracking-[-2px]">THE VOID AWAITS</div>
+            <p class="neon-cyan text-2xl mt-4">your first scream...</p>
+          </div>
+        `;
+        return;
+      }
+
+      const toShow = posts.slice(0, 9);
+      container.innerHTML = toShow.map(p => `
+        <div class="card rounded-3xl p-7 post overflow-hidden">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-[#ff00cc] to-[#00ffff] rounded-2xl flex-shrink-0"></div>
+            <div class="neon-pink font-bold text-3xl tracking-tight">${p.name}</div>
+          </div>
+          <div class="scream-text">${p.content}</div>
+          ${p.image ? `<img src="${p.image}" class="rounded-3xl mt-7 w-full border border-[#00ffff]/50 object-cover max-h-64">` : ''}
+        </div>
+      `).join('');
+    }
+
+    function screamNow() {
+      const text = document.getElementById('screamText').value.trim();
+      if (!text) {
+        alert("the void is still waiting...");
+        return;
+      }
+      
+      const name = document.getElementById('screamName').value.trim() || "Anonymous Screamer";
+      lastScreamer = name;
+      localStorage.setItem('lastScreamer', name);
+
+      posts.unshift({
+        id: Date.now(),
+        name: name,
+        content: text,
+        image: document.getElementById('imgUrl').value.trim() || ""
+      });
+
+      hideModal();
+      document.getElementById('screamText').value = '';
+      document.getElementById('imgUrl').value = '';
+
+      if (posts.length > 9) {
+        const toShow = posts.slice(0, 10);
+        document.getElementById('feed').innerHTML = toShow.map((p, idx) => `
+          <div class="card rounded-3xl p-7 post overflow-hidden ${idx === 9 ? 'fall-away' : ''}">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-10 h-10 bg-gradient-to-br from-[#ff00cc] to-[#00ffff] rounded-2xl flex-shrink-0"></div>
+              <div class="neon-pink font-bold text-3xl tracking-tight">${p.name}</div>
+            </div>
+            <div class="scream-text">${p.content}</div>
+            ${p.image ? `<img src="${p.image}" class="rounded-3xl mt-7 w-full border border-[#00ffff]/50 object-cover max-h-64">` : ''}
+          </div>
+        `).join('');
+        
+        setTimeout(() => {
+          posts.splice(9, 1);
+          savePosts();
+          renderFeed();
+        }, 850);
+      } else {
+        savePosts();
+        renderFeed();
+      }
+    }
+
+    function showScreamModal() {
+      document.getElementById('modal').classList.remove('hidden');
+      const nameInput = document.getElementById('screamName');
+      nameInput.value = lastScreamer;
+      document.getElementById('screamText').focus();
+    }
+    
+    function hideModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    window.onload = () => {
+      renderFeed();
+    };
+  </script>
+</body>
+</html>
