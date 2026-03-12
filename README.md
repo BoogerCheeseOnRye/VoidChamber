@@ -5,9 +5,6 @@
 No server. No accounts. No likes. No replies.  
 Just pure temporary neon chaos. Scream whatever you want. The void eats everything after 9 screams anyway.
 
-![VOIDSCREAM preview](https://i.imgur.com/placeholder.png)  
-*(replace with your own screenshot after uploading to GitHub)*
-
 ## Features
 - Fully responsive 3×3 grid (1 column on mobile, 2 on tablet, 3 on desktop)
 - Type **any name** every time — become whoever you want
