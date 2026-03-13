@@ -260,7 +260,7 @@
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything at 1000 screams • scream responsibly or the abyss will eat your soul, your mom, and your future children while laughing in 666 languages • premium checkmarks coming soon for the truly deranged • anonymity is baked in harder than your ex's excuses</div>
+    <div class="flavor-text">the void forgets everything at 1 million screams • scream responsibly or the abyss will eat your soul, your mom, and your future children while laughing in 666 languages • premium marks coming soon for the truly deranged • anonymity is baked in harder than your ex's excuses</div>
   </div>
 
 <script>
@@ -270,7 +270,7 @@
     let selectedAvatar = null;
     let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
-    const MAX_POSTS = 1000;
+    const MAX_POSTS = 1000000;
     const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID";
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
@@ -460,12 +460,13 @@
             <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
           </div>
 
+          <!-- Screeches (left) + Don't Look! (right) -->
           <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-10">
             <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              ScREEEEECheS <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
+              Screeches <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
             <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              Don't Look! Voter Integrity Exposed! <span class="neon-lime">(Votes)</span>
+              Don't Look! <span class="neon-lime">(Votes)</span>
             </div>
           </div>
 
