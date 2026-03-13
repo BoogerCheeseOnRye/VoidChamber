@@ -222,6 +222,8 @@
       </div>
       <div class="flex-1 flex items-center justify-center p-8 bg-[#0a001f] overflow-hidden" onclick="event.stopImmediatePropagation()">
         <img id="modalImage" src="" class="max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
+        <video id="modalVideo" class="hidden max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" controls autoplay loop></video>
+        <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
       </div>
     </div>
   </div>
@@ -619,15 +621,48 @@
     }
 
     function showImageModal(src) {
-      const img = document.getElementById('modalImage');
-      img.src = ''; // clear to force layout reflow (fixes Firefox shrinking on older/downstream images)
-      document.getElementById('imageModal').classList.remove('hidden');
-      setTimeout(() => {
-        img.src = src; // reload forces consistent sizing across Chrome/Firefox/Safari
-      }, 10);
+      const modal = document.getElementById('imageModal');
+      const imgEl = document.getElementById('modalImage');
+      const videoEl = document.getElementById('modalVideo');
+      const iframeEl = document.getElementById('modalIframe');
+
+      imgEl.classList.add('hidden');
+      videoEl.classList.add('hidden');
+      iframeEl.classList.add('hidden');
+
+      modal.classList.remove('hidden');
+
+      const lowerSrc = src.toLowerCase();
+      const ext = lowerSrc.split('.').pop();
+
+      if (['mp4','webm','ogg','mov'].includes(ext)) {
+        videoEl.src = src;
+        videoEl.classList.remove('hidden');
+        videoEl.play().catch(()=>{});
+      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html') || lowerSrc.includes('/game')) {
+        iframeEl.src = src;
+        iframeEl.classList.remove('hidden');
+      } else {
+        imgEl.src = src;
+        imgEl.classList.remove('hidden');
+      }
     }
+
     function hideImageModal() {
-      document.getElementById('imageModal').classList.add('hidden');
+      const modal = document.getElementById('imageModal');
+      const imgEl = document.getElementById('modalImage');
+      const videoEl = document.getElementById('modalVideo');
+      const iframeEl = document.getElementById('modalIframe');
+
+      videoEl.pause();
+      videoEl.src = '';
+      iframeEl.src = '';
+
+      imgEl.classList.add('hidden');
+      videoEl.classList.add('hidden');
+      iframeEl.classList.add('hidden');
+
+      modal.classList.add('hidden');
     }
 
     // === 2 PLAYER VOIDLINK MODAL + WEBSOCKET FLOW ===
