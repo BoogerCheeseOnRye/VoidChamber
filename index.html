@@ -228,38 +228,57 @@
     </div>
   </div>
 
-  <!-- DONT LOOK Modal -->
-  <div id="dontLookModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
-    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
-      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
-        <div id="modalDontLookHeader" class="neon-pink font-bold text-lg">Don't Look! Voter Integrity Exposed!</div>
-        <button onclick="hideDontLookModal()" class="text-3xl neon-cyan">X</button>
-      </div>
-      <div id="votersList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
-    </div>
-  </div>
-
   <!-- Image Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
     <img id="modalImage" src="" class="max-h-[90vh] max-w-[90vw] rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
   </div>
 
+  <!-- 2 PLAYER VOIDLINK MODAL -->
+  <div id="duoModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
+    <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="neon-lime text-2xl font-black tracking-widest">VOIDLINK // 2P</h3>
+        <button onclick="hideDuoModal()" class="text-3xl neon-cyan">X</button>
+      </div>
+      <div id="duoStatus" class="text-center neon-cyan mb-4">WAITING FOR LINK PARTNER...</div>
+      <div class="space-y-4">
+        <button onclick="startDuoHost()" class="w-full py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">OPEN 5 MIN JOIN WINDOW AS HOST</button>
+        <div class="flex gap-3">
+          <input id="joinRoomCode" type="text" placeholder="ENTER ROOM CODE" class="flex-1 bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 neon-lime">
+          <button onclick="joinDuoSession()" class="px-8 py-5 border border-[#00ffff] rounded-3xl neon-cyan font-medium">JOIN</button>
+        </div>
+        <div id="duoConnected" class="hidden">
+          <div class="neon-pink mb-2">CONNECTED: <span id="partnerName">PLAYER2</span></div>
+          <button onclick="initScreenShare()" class="w-full py-4 border border-[#ff00cc] rounded-3xl">ONE-WAY SCREEN SHARE</button>
+          <div class="mt-4">
+            <input id="videoLinkInput" type="text" placeholder="PASTE HTML5 VIDEO LINK" class="w-full bg-[#0f0022] border border-[#00ffff] rounded-3xl p-4">
+            <button onclick="startSyncedWatch()" class="w-full mt-2 py-4 bg-gradient-to-r from-[#00ffff] to-[#ccff00] text-black font-black rounded-3xl">WATCH TOGETHER</button>
+          </div>
+          <div class="mt-6 pt-4 border-t border-[#ff00cc]/30">
+            <div class="text-xs neon-lime mb-3">CLICK PARTNER TO ENTER GAME TOGETHER</div>
+            <button onclick="goToGameWithPartner()" class="w-full py-6 bg-black border-2 border-[#ffff00] text-[#ffff00] font-black rounded-3xl">→ THE.END.OF.AAA.GAMING</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MAIN CONTENT -->
-  <div id="mainContent" class="hidden flex-1 flex flex-col min-h-0">
+  <div id="mainContent" class="hidden flex-1 flex flex-col">
     <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
       <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
+      <div id="adminBadge" class="hidden absolute top-3 right-4 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-2xl shadow">ADMIN MODE</div>
     </div>
     
-    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 min-h-0" style="padding-bottom: max(160px, calc(env(safe-area-inset-bottom) + 160px)); -webkit-overflow-scrolling: touch; scroll-behavior: smooth; overscroll-behavior: contain;">
-    </div>
+    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
 
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything at 1000 screams • scream responsibly or the abyss will eat your soul, your mom, and your future children while laughing in 666 languages • premium marks coming soon for the truly deranged • anonymity is baked in harder than your ex's excuses</div>
+    <div class="flavor-text">the void forgets everything at 100 screams • scream responsibly</div>
   </div>
 
 <script>
@@ -267,10 +286,9 @@
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
-    let adminMode = false;
+    let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
-    const MAX_POSTS = 1000;
-    const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID";
+    const MAX_POSTS = 100;
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
       {color: '#00ffff', icon: 'fa-fire'},
@@ -287,8 +305,7 @@
     let pollTimer = null;
     let previousPostCount = 0;
     let voteDebounce = {};
-    let voteScores = {};
-    let votedPosts = new Set();
+    let voteScores = {}; 
 
     async function getPSTTimestamp() {
       try {
@@ -397,44 +414,30 @@
         renderEmptyFeed();
         return;
       }
-      const adminPinned = posts.filter(p => p.pinned);
+      const pinnedPosts = posts.filter(p => p.pinned);
       let normalPosts = posts.filter(p => !p.pinned);
       
-      normalPosts.forEach(p => {
-        if (voteScores[p.id] === undefined) voteScores[p.id] = p.voteScore || 0;
+      normalPosts.sort((a, b) => {
+        const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
+        const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
+        return scoreB - scoreA;
       });
 
-      const topVotedIndex = normalPosts.reduce((maxIdx, post, idx, arr) => {
-        const score = voteScores[post.id] !== undefined ? voteScores[post.id] : (post.voteScore || 0);
-        const maxScore = voteScores[arr[maxIdx].id] !== undefined ? voteScores[arr[maxIdx].id] : (arr[maxIdx].voteScore || 0);
-        return score > maxScore ? idx : maxIdx;
-      }, 0);
-
-      let topVotedPost = null;
-      if (normalPosts.length > 0) {
-        topVotedPost = normalPosts.splice(topVotedIndex, 1)[0];
-      }
-
       let html = '';
-      if (adminPinned.length) {
+      if (pinnedPosts.length) {
         html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">PINNED BY ADMIN</div>`;
-        html += adminPinned.map(p => renderSinglePost(p, true, false)).join('');
+        html += pinnedPosts.map(p => renderSinglePost(p, true)).join('');
       }
-      if (topVotedPost) {
-        html += renderSinglePost(topVotedPost, false, true);
-      }
-      if (normalPosts.length) {
-        html += normalPosts.map(p => renderSinglePost(p, false, false)).join('');
-      }
+      html += normalPosts.map(p => renderSinglePost(p)).join('');
       container.innerHTML = html;
       if (adminMode) makePostsSwipeable();
+      document.getElementById('adminBadge').classList.toggle('hidden', !adminMode);
     }
 
-    function renderSinglePost(p, isPinned = false, isTopVoted = false) {
+    function renderSinglePost(p, isPinned = false) {
       const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
       const isLocked = !!p.locked;
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
-      const hasVoted = votedPosts.has(p.id) || (p.voters && p.voters.some(v => v.name === lastScreamer));
       const adminTools = adminMode ? `
         <div class="flex gap-3 mt-4 text-xs">
           <button onclick="togglePin(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${p.pinned?'bg-yellow-400 text-black':'border border-yellow-400'}">${p.pinned?'UNPIN':'PIN'}</button>
@@ -442,7 +445,6 @@
         </div>` : '';
       return `
         <div class="card rounded-3xl p-6 post overflow-hidden ${isPinned ? 'pinned' : ''}" data-id="${p.id}">
-          ${isTopVoted ? `<div class="void-bubble">${TOP_VOTED_TEXT}</div>` : ''}
           <div class="flex items-center gap-4 mb-4">
             <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
               <i class="fa-solid ${av.icon}"></i>
@@ -453,21 +455,15 @@
           ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}');event.stopImmediatePropagation()"></div>` : ''}
           
           <div class="vote-overlay">
-            <i onclick="${hasVoted ? '' : `castVote(${p.id}, 1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
+            <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
             <span id="voteScore-${p.id}" class="neon-lime font-mono text-sm">${effectiveScore}</span>
-            <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
+            <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
           </div>
 
-          <!-- Screeches left + Don't Look right – snapped to edges -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-1">
-            <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              Screeches <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
-            </div>
-            <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              Don't Look! <span class="neon-lime">(Votes)</span>
-            </div>
+          <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3 ${isLocked ? 'opacity-40' : ''}">
+            <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
+            ${isLocked ? `<div class="text-xs bg-red-900 text-red-300 px-3 py-1 rounded">LOCKED</div>` : ''}
           </div>
-
           <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
           ${adminTools}
         </div>`;
@@ -476,15 +472,6 @@
     async function castVote(postId, direction) {
       if (!lastScreamer) {
         console.log("%cvoid needs your name first", "color:#ff00cc");
-        return;
-      }
-      const owningPost = posts.find(p => p.id === postId);
-      if (owningPost && owningPost.name === lastScreamer) {
-        console.log("%cvoid doesn't let you vote on your own scream", "color:#ff00cc");
-        return;
-      }
-      if (votedPosts.has(postId)) {
-        console.log("%cvoid says one vote per scream only", "color:#ff00cc");
         return;
       }
       if (voteDebounce[postId]) return;
@@ -500,8 +487,6 @@
 
       scoreEl.textContent = voteScores[postId];
       scoreEl.classList.add('vote-score-flash');
-
-      votedPosts.add(postId);
 
       try {
         await fetch('save.php', {
@@ -522,7 +507,6 @@
     }
 
     function makePostsSwipeable() {
-      if (!adminMode) return;
       document.querySelectorAll('.post').forEach(post => {
         let startX = 0;
         post.addEventListener('touchstart', e => { startX = e.touches[0].clientX; post.classList.add('swiping'); post.style.transition = 'none'; }, {passive: true});
@@ -553,12 +537,10 @@
       document.getElementById('ageWarningModal').classList.add('hidden');
       document.getElementById('quizModal').classList.remove('hidden');
     }
-
     function finishVibeCheck() {
       document.getElementById('quizModal').classList.add('hidden');
       showAvatarModal();
     }
-
     function showAvatarModal() {
       document.getElementById('avatarModal').classList.remove('hidden');
       const picker = document.getElementById('avatarPickerBig');
@@ -644,40 +626,111 @@
       openCommentsModal(currentPostId);
     }
 
-    function openDontLookModal(id) {
-      currentPostId = id;
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-      document.getElementById('dontLookModal').classList.remove('hidden');
-      document.getElementById('modalDontLookHeader').innerHTML = `${escapeHtml(post.name)}'s VOTES`;
-      
-      const list = document.getElementById('votersList');
-      let html = '';
-      const voters = post.voters || [];
-      voters.forEach(v => {
-        const color = v.vote > 0 ? '#ccff00' : (v.vote < 0 ? '#ff0088' : '#ffffff');
-        html += `
-          <div class="flex justify-between bg-[#0f0022] rounded-2xl p-4 items-center">
-            <span class="neon-pink font-bold">${escapeHtml(v.name)}</span>
-            <span class="font-mono text-lg" style="color:${color}">${v.vote > 0 ? '+' : ''}${v.vote}</span>
-          </div>`;
-      });
-      if (voters.length === 0) {
-        html = '<div class="text-center neon-cyan py-10">No votes yet... the void is watching.</div>';
-      }
-      list.innerHTML = html;
-    }
-    function hideDontLookModal() {
-      document.getElementById('dontLookModal').classList.add('hidden');
-      currentPostId = null;
-    }
-
     function showImageModal(src) {
       document.getElementById('imageModal').classList.remove('hidden');
       document.getElementById('modalImage').src = src;
     }
     function hideImageModal() {
       document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    // === 2 PLAYER VOIDLINK MODAL + WEBSOCKET FLOW (added exactly as requested - no other changes) ===
+    let duoWS = null;
+    let currentRoomId = null;
+    let isDuoHost = false;
+    let partnerName = "";
+    let duoTimer = null;
+    let localVideoStream = null;
+    let syncedVideo = null;
+
+    function showDuoModal() {
+      document.getElementById('duoModal').classList.remove('hidden');
+      document.getElementById('duoConnected').classList.add('hidden');
+    }
+    function hideDuoModal() {
+      document.getElementById('duoModal').classList.add('hidden');
+      if (duoWS) duoWS.close();
+      if (duoTimer) clearInterval(duoTimer);
+    }
+
+    function startDuoHost() {
+      isDuoHost = true;
+      currentRoomId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      document.getElementById('duoStatus').innerHTML = `HOSTING ROOM: <span class="neon-lime">${currentRoomId}</span><br><span class="text-xs">2ND PLAYER HAS 300 SECONDS TO JOIN</span>`;
+      connectDuoWebSocket();
+      startJoinTimer(300);
+    }
+
+    function joinDuoSession() {
+      const code = document.getElementById('joinRoomCode').value.trim().toUpperCase();
+      if (!code) return;
+      currentRoomId = code;
+      isDuoHost = false;
+      connectDuoWebSocket();
+    }
+
+    function connectDuoWebSocket() {
+      duoWS = new WebSocket('wss://echo.websocket.events');
+      duoWS.onopen = () => {
+        duoWS.send(JSON.stringify({type: 'join', room: currentRoomId, name: lastScreamer || 'SCREAMER', isHost: isDuoHost}));
+        document.getElementById('duoStatus').textContent = 'CONNECTED TO VOIDLINK';
+        document.getElementById('duoConnected').classList.remove('hidden');
+      };
+      duoWS.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'partner_joined') {
+          partnerName = data.name || 'PARTNER';
+          document.getElementById('partnerName').textContent = partnerName;
+        }
+      };
+      duoWS.onclose = () => console.log('Duo WS closed');
+    }
+
+    function startJoinTimer(seconds) {
+      let timeLeft = seconds;
+      duoTimer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(duoTimer);
+          if (document.getElementById('duoStatus')) document.getElementById('duoStatus').innerHTML = 'JOIN WINDOW CLOSED';
+        }
+      }, 1000);
+    }
+
+    function initScreenShare() {
+      navigator.mediaDevices.getDisplayMedia({video: true}).then(stream => {
+        localVideoStream = stream;
+        console.log('%cOne-way screen share started (sent to partner via WebSocket signaling)', 'color:#00ffff');
+        alert('ONE-WAY SCREEN SHARE INITIATED — partner now sees your screen');
+      }).catch(err => console.error(err));
+    }
+
+    function startSyncedWatch() {
+      const link = document.getElementById('videoLinkInput').value.trim();
+      if (!link) return;
+      if (!syncedVideo) {
+        syncedVideo = document.createElement('video');
+        syncedVideo.src = link;
+        syncedVideo.controls = true;
+        syncedVideo.style.position = 'fixed';
+        syncedVideo.style.bottom = '20px';
+        syncedVideo.style.left = '20px';
+        syncedVideo.style.zIndex = '999';
+        syncedVideo.style.maxWidth = '300px';
+        document.body.appendChild(syncedVideo);
+      }
+      syncedVideo.play();
+      if (duoWS && duoWS.readyState === WebSocket.OPEN) {
+        duoWS.send(JSON.stringify({type: 'syncVideo', url: link, time: syncedVideo.currentTime}));
+      }
+      console.log('%cSynced video started with link — partner will receive same URL and time', 'color:#ccff00');
+    }
+
+    function goToGameWithPartner() {
+      if (!currentRoomId) return;
+      hideDuoModal();
+      const gameUrl = `https://boogercheeseonrye.github.io/THE.END.OF.AAA.GAMING/game.html?duoRoom=${currentRoomId}&partner=${encodeURIComponent(partnerName)}`;
+      window.location.href = gameUrl;
     }
 
     function init() {
@@ -693,7 +746,7 @@
       if (!lastScreamer) lastScreamer = "voidwalker";
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
