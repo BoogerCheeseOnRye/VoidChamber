@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
+    :root { --abyss: #0a001f; }
     html, body, #feed {
       scrollbar-width: none;
       -ms-overflow-style: none;
@@ -18,7 +19,41 @@
       display: none;
     }
 
-    body { background: #0a001f; font-family: system-ui, sans-serif; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; }
+    body { 
+      background: var(--abyss); 
+      font-family: system-ui, sans-serif; 
+      height: 100dvh; 
+      overflow: hidden; 
+      display: flex; 
+      flex-direction: column; 
+      margin: 0; 
+      position: relative;
+    }
+    
+    #abyss-fall {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .falling {
+      position: absolute;
+      color: #ff00cc;
+      font-size: 22px;
+      opacity: 0.12;
+      text-shadow: 0 0 12px #ff00cc, 0 0 25px #00ffff;
+      animation: abyssFall linear forwards;
+      user-select: none;
+    }
+    
+    @keyframes abyssFall {
+      to {
+        transform: translateY(120vh) rotate(720deg);
+      }
+    }
+
     .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
     .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
     .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
@@ -42,12 +77,10 @@
       position: relative;
     }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
-    .pinned { border-color: #ffff00; box-shadow: 0 0 25px #ffff0088; }
     .post {
       transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
       position: relative;
     }
-    .post.swiping { transition: none; }
     .void-scream-btn {
       background: linear-gradient(45deg, #ff00cc, #00ffff);
       padding: 1.2rem 3rem;
@@ -132,6 +165,9 @@
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
+
+  <!-- ABYSS FALL LAYER -->
+  <div id="abyss-fall"></div>
 
   <!-- AGE WARNING MODAL -->
   <div id="ageWarningModal" class="fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
@@ -228,42 +264,11 @@
     </div>
   </div>
 
-  <!-- 2 PLAYER VOIDLINK MODAL -->
-  <div id="duoModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
-    <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="neon-lime text-2xl font-black tracking-widest">VOIDLINK // 2P</h3>
-        <button onclick="hideDuoModal()" class="text-3xl neon-cyan">X</button>
-      </div>
-      <div id="duoStatus" class="text-center neon-cyan mb-4">WAITING FOR LINK PARTNER...</div>
-      <div class="space-y-4">
-        <button onclick="startDuoHost()" class="w-full py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">OPEN 5 MIN JOIN WINDOW AS HOST</button>
-        <div class="flex gap-3">
-          <input id="joinRoomCode" type="text" placeholder="ENTER ROOM CODE" class="flex-1 bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 neon-lime">
-          <button onclick="joinDuoSession()" class="px-8 py-5 border border-[#00ffff] rounded-3xl neon-cyan font-medium">JOIN</button>
-        </div>
-        <div id="duoConnected" class="hidden">
-          <div class="neon-pink mb-2">CONNECTED: <span id="partnerName">PLAYER2</span></div>
-          <button onclick="initScreenShare()" class="w-full py-4 border border-[#ff00cc] rounded-3xl">ONE-WAY SCREEN SHARE</button>
-          <div class="mt-4">
-            <input id="videoLinkInput" type="text" placeholder="PASTE HTML5 VIDEO LINK" class="w-full bg-[#0f0022] border border-[#00ffff] rounded-3xl p-4">
-            <button onclick="startSyncedWatch()" class="w-full mt-2 py-4 bg-gradient-to-r from-[#00ffff] to-[#ccff00] text-black font-black rounded-3xl">WATCH TOGETHER</button>
-          </div>
-          <div class="mt-6 pt-4 border-t border-[#ff00cc]/30">
-            <div class="text-xs neon-lime mb-3">CLICK PARTNER TO ENTER GAME TOGETHER</div>
-            <button onclick="goToGameWithPartner()" class="w-full py-6 bg-black border-2 border-[#ffff00] text-[#ffff00] font-black rounded-3xl">→ THE.END.OF.AAA.GAMING</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- MAIN CONTENT -->
   <div id="mainContent" class="hidden flex-1 flex flex-col">
     <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
       <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
-      <div id="adminBadge" class="hidden absolute top-3 right-4 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-2xl shadow">ADMIN MODE</div>
     </div>
     
     <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
@@ -272,7 +277,7 @@
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything at 100 screams • scream responsibly</div>
+    <div class="flavor-text">the void forgets everything • scroll up to feel the fall</div>
   </div>
 
 <script>
@@ -280,8 +285,12 @@
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
-    let adminMode = localStorage.getItem('vcAdmin') === 'true';
-    let customVibe = "";
+    let pollRate = 6000;
+    let pollTimer = null;
+    let previousPostCount = 0;
+    let voteDebounce = {};
+    let voteScores = {}; 
+
     const MAX_POSTS = 100;
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
@@ -293,13 +302,6 @@
       {color: '#ff8800', icon: 'fa-eye'},
       {color: '#00ccff', icon: 'fa-crown'}
     ];
-    const adminAvatar = {color: '#ffff00', icon: 'fa-crown'};
-
-    let pollRate = 6000;
-    let pollTimer = null;
-    let previousPostCount = 0;
-    let voteDebounce = {};
-    let voteScores = {}; 
 
     async function getPSTTimestamp() {
       try {
@@ -338,29 +340,6 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-    }
-
-    async function togglePin(id) {
-      if (!adminMode) return;
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-      post.pinned = !post.pinned;
-      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "pin", id: id, pinned: post.pinned})}).catch(() => console.log("%cvoid swallowed pin update", "color:#ff00cc"));
-      await loadPosts();
-    }
-    async function toggleLock(id) {
-      if (!adminMode) return;
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-      post.locked = !post.locked;
-      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "lock", id: id, locked: post.locked})}).catch(() => console.log("%cvoid swallowed lock update", "color:#ff00cc"));
-      await loadPosts();
-    }
-    async function deletePost(id) {
-      if (!adminMode || !confirm("DELETE THIS SCREAM FROM THE VOID FOREVER?")) return;
-      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "deletePost", id})})
-        .catch(() => console.log("%cvoid swallowed delete", "color:#ff00cc"));
-      await loadPosts();
     }
 
     async function loadPosts() {
@@ -408,37 +387,20 @@
         renderEmptyFeed();
         return;
       }
-      const pinnedPosts = posts.filter(p => p.pinned);
       let normalPosts = posts.filter(p => !p.pinned);
-      
       normalPosts.sort((a, b) => {
         const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
         const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
         return scoreB - scoreA;
       });
-
-      let html = '';
-      if (pinnedPosts.length) {
-        html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">PINNED BY ADMIN</div>`;
-        html += pinnedPosts.map(p => renderSinglePost(p, true)).join('');
-      }
-      html += normalPosts.map(p => renderSinglePost(p)).join('');
-      container.innerHTML = html;
-      if (adminMode) makePostsSwipeable();
-      document.getElementById('adminBadge').classList.toggle('hidden', !adminMode);
+      container.innerHTML = normalPosts.map(p => renderSinglePost(p)).join('');
     }
 
-    function renderSinglePost(p, isPinned = false) {
+    function renderSinglePost(p) {
       const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
-      const isLocked = !!p.locked;
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
-      const adminTools = adminMode ? `
-        <div class="flex gap-3 mt-4 text-xs">
-          <button onclick="togglePin(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${p.pinned?'bg-yellow-400 text-black':'border border-yellow-400'}">${p.pinned?'UNPIN':'PIN'}</button>
-          <button onclick="toggleLock(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${isLocked?'bg-red-400 text-black':'border border-red-400'}">${isLocked?'UNLOCK':'LOCK SCREECHES'}</button>
-        </div>` : '';
       return `
-        <div class="card rounded-3xl p-6 post overflow-hidden ${isPinned ? 'pinned' : ''}" data-id="${p.id}">
+        <div class="card rounded-3xl p-6 post overflow-hidden" data-id="${p.id}">
           <div class="flex items-center gap-4 mb-4">
             <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
               <i class="fa-solid ${av.icon}"></i>
@@ -454,12 +416,10 @@
             <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
           </div>
 
-          <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3 ${isLocked ? 'opacity-40' : ''}">
+          <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3">
             <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
-            ${isLocked ? `<div class="text-xs bg-red-900 text-red-300 px-3 py-1 rounded">LOCKED</div>` : ''}
           </div>
           <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
-          ${adminTools}
         </div>`;
     }
 
@@ -498,28 +458,6 @@
           renderFeed();
         }, 600);
       }
-    }
-
-    function makePostsSwipeable() {
-      document.querySelectorAll('.post').forEach(post => {
-        let startX = 0;
-        post.addEventListener('touchstart', e => { startX = e.touches[0].clientX; post.classList.add('swiping'); post.style.transition = 'none'; }, {passive: true});
-        post.addEventListener('touchmove', e => {
-          const delta = e.touches[0].clientX - startX;
-          if (delta < 0) post.style.transform = `translateX(${delta}px)`;
-        }, {passive: true});
-        post.addEventListener('touchend', e => {
-          post.classList.remove('swiping');
-          const delta = e.changedTouches[0].clientX - startX;
-          post.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
-          if (delta < -150) {
-            post.style.transform = 'translateX(-120%)';
-            setTimeout(() => deletePost(parseInt(post.dataset.id)), 250);
-          } else {
-            post.style.transform = 'translateX(0)';
-          }
-        }, {passive: true});
-      });
     }
 
     function refreshFeedAndScroll() {
@@ -579,7 +517,7 @@
         name: name,
         content: content,
         image: document.getElementById('imgUrl').value.trim() || null,
-        avatar: adminMode ? adminAvatar : (selectedAvatar || avatarOptions[0]),
+        avatar: selectedAvatar || avatarOptions[0],
         comments: []
       };
       await saveNewPost(newPost);
@@ -594,8 +532,6 @@
       if (!post) return;
       document.getElementById('commentsModal').classList.remove('hidden');
       document.getElementById('modalPostHeader').innerHTML = `${escapeHtml(post.name)}'s SCREAM`;
-      const isLocked = !!post.locked;
-      document.getElementById('commentInputArea').style.display = isLocked ? 'none' : 'flex';
       const list = document.getElementById('commentsList');
       list.innerHTML = (post.comments || []).map(c => `
         <div class="bg-[#0f0022] rounded-2xl p-4">
@@ -649,24 +585,9 @@
         setTimeout(() => {
           iframeEl.style.width = '100%';
           iframeEl.style.height = '100%';
-          const tapToFullscreen = () => {
-            if (iframeEl.requestFullscreen) iframeEl.requestFullscreen();
-            else if (iframeEl.webkitRequestFullscreen) iframeEl.webkitRequestFullscreen();
-            else if (iframeEl.msRequestFullscreen) iframeEl.msRequestFullscreen();
-          };
-          iframeEl.addEventListener('click', tapToFullscreen, {once: true});
-          container.addEventListener('click', tapToFullscreen, {once: true});
         }, 30);
       } else {
-        imgEl.src = '';
-        setTimeout(() => {
-          imgEl.src = src;
-          imgEl.style.maxWidth = '100%';
-          imgEl.style.maxHeight = '100%';
-          imgEl.style.width = 'auto';
-          imgEl.style.height = 'auto';
-          imgEl.style.objectFit = 'contain';
-        }, 10);
+        imgEl.src = src;
         imgEl.classList.remove('hidden');
       }
     }
@@ -688,106 +609,43 @@
       modal.classList.add('hidden');
     }
 
-    // === 2 PLAYER VOIDLINK MODAL + WEBSOCKET FLOW ===
-    let duoWS = null;
-    let currentRoomId = null;
-    let isDuoHost = false;
-    let partnerName = "";
-    let duoTimer = null;
-    let localVideoStream = null;
-    let syncedVideo = null;
-
-    function showDuoModal() {
-      document.getElementById('duoModal').classList.remove('hidden');
-      document.getElementById('duoConnected').classList.add('hidden');
-    }
-    function hideDuoModal() {
-      document.getElementById('duoModal').classList.add('hidden');
-      if (duoWS) duoWS.close();
-      if (duoTimer) clearInterval(duoTimer);
-    }
-
-    function startDuoHost() {
-      isDuoHost = true;
-      currentRoomId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      document.getElementById('duoStatus').innerHTML = `HOSTING ROOM: <span class="neon-lime">${currentRoomId}</span><br><span class="text-xs">2ND PLAYER HAS 300 SECONDS TO JOIN</span>`;
-      connectDuoWebSocket();
-      startJoinTimer(300);
-    }
-
-    function joinDuoSession() {
-      const code = document.getElementById('joinRoomCode').value.trim().toUpperCase();
-      if (!code) return;
-      currentRoomId = code;
-      isDuoHost = false;
-      connectDuoWebSocket();
-    }
-
-    function connectDuoWebSocket() {
-      duoWS = new WebSocket('wss://echo.websocket.events');
-      duoWS.onopen = () => {
-        duoWS.send(JSON.stringify({type: 'join', room: currentRoomId, name: lastScreamer || 'SCREAMER', isHost: isDuoHost}));
-        document.getElementById('duoStatus').textContent = 'CONNECTED TO VOIDLINK';
-        document.getElementById('duoConnected').classList.remove('hidden');
-      };
-      duoWS.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'partner_joined') {
-          partnerName = data.name || 'PARTNER';
-          document.getElementById('partnerName').textContent = partnerName;
-        }
-      };
-      duoWS.onclose = () => console.log('Duo WS closed');
-    }
-
-    function startJoinTimer(seconds) {
-      let timeLeft = seconds;
-      duoTimer = setInterval(() => {
-        timeLeft--;
-        if (timeLeft <= 0) {
-          clearInterval(duoTimer);
-          if (document.getElementById('duoStatus')) document.getElementById('duoStatus').innerHTML = 'JOIN WINDOW CLOSED';
-        }
-      }, 1000);
-    }
-
-    function initScreenShare() {
-      navigator.mediaDevices.getDisplayMedia({video: true}).then(stream => {
-        localVideoStream = stream;
-        console.log('%cOne-way screen share started (sent to partner via WebSocket signaling)', 'color:#00ffff');
-        alert('ONE-WAY SCREEN SHARE INITIATED — partner now sees your screen');
-      }).catch(err => console.error(err));
-    }
-
-    function startSyncedWatch() {
-      const link = document.getElementById('videoLinkInput').value.trim();
-      if (!link) return;
-      if (!syncedVideo) {
-        syncedVideo = document.createElement('video');
-        syncedVideo.src = link;
-        syncedVideo.controls = true;
-        syncedVideo.style.position = 'fixed';
-        syncedVideo.style.bottom = '20px';
-        syncedVideo.style.left = '20px';
-        syncedVideo.style.zIndex = '999';
-        syncedVideo.style.maxWidth = '300px';
-        document.body.appendChild(syncedVideo);
+    // === ABYSS FALL ANIMATION (intensifies while scrolling UP) ===
+    function spawnAbyssParticle(intensity = 1) {
+      const fallLayer = document.getElementById('abyss-fall');
+      for (let i = 0; i < 4 * intensity; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'falling';
+        const icons = ['☠️','👁️','🌀','⚡','🔥','🌑','AHH','VOID','SCREAM','💀','✧','🕳️'];
+        particle.textContent = icons[Math.floor(Math.random()*icons.length)];
+        
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.animationDuration = (Math.random() * 9 + 6) + 's';
+        particle.style.animationDelay = '-' + (Math.random() * 15) + 's';
+        particle.style.opacity = Math.random() * 0.25 + 0.07;
+        particle.style.fontSize = (Math.random() * 22 + 16) + 'px';
+        
+        fallLayer.appendChild(particle);
+        
+        setTimeout(() => {
+          if (particle.parentNode) particle.parentNode.removeChild(particle);
+        }, 22000);
       }
-      syncedVideo.play();
-      if (duoWS && duoWS.readyState === WebSocket.OPEN) {
-        duoWS.send(JSON.stringify({type: 'syncVideo', url: link, time: syncedVideo.currentTime}));
-      }
-      console.log('%cSynced video started with link — partner will receive same URL and time', 'color:#ccff00');
     }
 
-    function goToGameWithPartner() {
-      if (!currentRoomId) return;
-      hideDuoModal();
-      const gameUrl = `https://boogercheeseonrye.github.io/THE.END.OF.AAA.GAMING/game.html?duoRoom=${currentRoomId}&partner=${encodeURIComponent(partnerName)}`;
-      window.location.href = gameUrl;
+    function startAbyssFall() {
+      setInterval(() => spawnAbyssParticle(1), 380);
+      let lastScrollY = 0;
+      document.getElementById('feed').addEventListener('scroll', () => {
+        const currentY = document.getElementById('feed').scrollTop;
+        if (currentY < lastScrollY) { // scrolling UP = deeper into the abyss
+          spawnAbyssParticle(4);
+        }
+        lastScrollY = currentY;
+      });
     }
 
     function init() {
+      startAbyssFall();
       const onboardingDone = localStorage.getItem('vcOnboardingComplete') === 'true';
       if (!onboardingDone) {
         document.getElementById('ageWarningModal').classList.remove('hidden');
