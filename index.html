@@ -212,7 +212,7 @@
     </div>
   </div>
 
-  <!-- Media Modal (now matches other modals exactly + perfect snap) -->
+  <!-- Media Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
     <div class="card rounded-3xl w-full max-w-[95vw] max-h-[94vh] mx-4 flex flex-col overflow-hidden">
@@ -220,7 +220,7 @@
         <div class="neon-pink font-bold text-lg">VOID VIEW</div>
         <button onclick="hideImageModal();event.stopImmediatePropagation()" class="text-3xl neon-cyan">X</button>
       </div>
-      <div id="mediaContainer" class="flex-1 flex items-center justify-center bg-[#0a001f] overflow-hidden relative" onclick="event.stopImmediatePropagation()">
+      <div id="mediaContainer" class="flex-1 flex items-center justify-center bg-[#0a001f] overflow-hidden relative p-4" onclick="event.stopImmediatePropagation()">
         <img id="modalImage" src="" class="hidden max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
         <video id="modalVideo" class="hidden max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" controls autoplay loop></video>
         <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" sandbox="allow-scripts allow-same-origin allow-popups" allowfullscreen></iframe>
@@ -627,7 +627,6 @@
       const videoEl = document.getElementById('modalVideo');
       const iframeEl = document.getElementById('modalIframe');
 
-      // reset everything to prevent size bleed
       imgEl.classList.add('hidden');
       videoEl.classList.add('hidden');
       iframeEl.classList.add('hidden');
@@ -644,10 +643,9 @@
         videoEl.src = src;
         videoEl.classList.remove('hidden');
         videoEl.play().catch(()=>{});
-      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html') || lowerSrc.includes('game.html')) {
+      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html')) {
         iframeEl.src = src;
         iframeEl.classList.remove('hidden');
-        // perfect snap to modal interior
         setTimeout(() => {
           iframeEl.style.width = '100%';
           iframeEl.style.height = '100%';
