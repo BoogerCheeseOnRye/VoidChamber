@@ -129,22 +129,6 @@
     .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
-    .void-bubble {
-      background: #ccff0033;
-      border: 1px solid #ccff00;
-      color: #ccff00;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      margin-bottom: 1rem;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-weight: bold;
-      display: inline-block;
-      white-space: nowrap;
-      min-width: auto;
-    }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
@@ -635,8 +619,12 @@
     }
 
     function showImageModal(src) {
+      const img = document.getElementById('modalImage');
+      img.src = ''; // clear to force layout reflow (fixes Firefox shrinking on older/downstream images)
       document.getElementById('imageModal').classList.remove('hidden');
-      document.getElementById('modalImage').src = src;
+      setTimeout(() => {
+        img.src = src; // reload forces consistent sizing across Chrome/Firefox/Safari
+      }, 10);
     }
     function hideImageModal() {
       document.getElementById('imageModal').classList.add('hidden');
