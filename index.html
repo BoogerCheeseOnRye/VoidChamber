@@ -223,7 +223,7 @@
       <div class="flex-1 flex items-center justify-center p-8 bg-[#0a001f] overflow-hidden" onclick="event.stopImmediatePropagation()">
         <img id="modalImage" src="" class="max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
         <video id="modalVideo" class="hidden max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" controls autoplay loop></video>
-        <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+        <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" sandbox="allow-scripts allow-same-origin allow-popups" allowfullscreen></iframe>
       </div>
     </div>
   </div>
@@ -639,15 +639,31 @@
         videoEl.src = src;
         videoEl.classList.remove('hidden');
         videoEl.play().catch(()=>{});
-      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html') || lowerSrc.includes('/game')) {
+      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html') || lowerSrc.includes('game.html')) {
         iframeEl.src = src;
         iframeEl.classList.remove('hidden');
+        iframeEl.style.cursor = 'pointer';
+        // ENHANCED FOR 1-FILE HTML 3D GAME: tap anywhere in the modal area to go fullscreen
+        setTimeout(() => {
+          const tapToFullscreen = () => {
+            if (iframeEl.requestFullscreen) {
+              iframeEl.requestFullscreen();
+            } else if (iframeEl.webkitRequestFullscreen) {
+              iframeEl.webkitRequestFullscreen();
+            } else if (iframeEl.msRequestFullscreen) {
+              iframeEl.msRequestFullscreen();
+            }
+          };
+          // one-time tap handler on the iframe itself
+          iframeEl.addEventListener('click', tapToFullscreen, {once: true});
+          // fallback tap on the whole content area for mobile
+          modal.querySelector('.flex-1').addEventListener('click', tapToFullscreen, {once: true});
+        }, 800);
       } else {
         imgEl.src = src;
         imgEl.classList.remove('hidden');
       }
     }
-
     function hideImageModal() {
       const modal = document.getElementById('imageModal');
       const imgEl = document.getElementById('modalImage');
