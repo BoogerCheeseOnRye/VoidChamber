@@ -151,7 +151,7 @@
 
   <!-- AGE WARNING MODAL -->
   <div id="ageWarningModal" class="fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
-    <div class="card rounded-3xl p-8 max-w-md text-center">
+    <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
       <div class="text-6xl mb-6">Warning</div>
       <h2 class="neon-pink text-4xl font-black tracking-[-3px]">18+ ONLY</h2>
       <p class="neon-cyan text-lg mt-6 leading-tight">The abyss hungers for your raw screams.<br>Only those who have stared into the void and laughed may enter.</p>
@@ -165,7 +165,7 @@
 
   <!-- VIBE CHECK MODAL -->
   <div id="quizModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
-    <div class="card rounded-3xl p-8 max-w-md text-center">
+    <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
       <div class="text-6xl mb-6">ABYSS WARNING</div>
       <h2 class="neon-pink text-4xl font-black tracking-[-3px]">18+ OR GET SWALLOWED</h2>
       <p class="neon-cyan text-lg mt-6 leading-tight">The void only accepts the truly fucked up.<br>Anyone else gets digested alive.<br>Still here? Good. Now scream like you mean it.</p>
@@ -250,7 +250,6 @@
     <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
       <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
-      <div id="adminBadge" class="hidden absolute top-3 right-4 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-2xl shadow">ADMIN MODE</div>
     </div>
     
     <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 min-h-0" style="padding-bottom: max(160px, calc(env(safe-area-inset-bottom) + 160px)); -webkit-overflow-scrolling: touch; scroll-behavior: smooth; overscroll-behavior: contain;">
@@ -260,7 +259,7 @@
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything at 1 million screams • scream responsibly or the abyss will eat your soul, your mom, and your future children while laughing in 666 languages • premium marks coming soon for the truly deranged • anonymity is baked in harder than your ex's excuses</div>
+    <div class="flavor-text">the void forgets everything at 1000 screams • scream responsibly or the abyss will eat your soul, your mom, and your future children while laughing in 666 languages • premium marks coming soon for the truly deranged • anonymity is baked in harder than your ex's excuses</div>
   </div>
 
 <script>
@@ -268,9 +267,9 @@
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
-    let adminMode = localStorage.getItem('vcAdmin') === 'true';
+    let adminMode = false;
     let customVibe = "";
-    const MAX_POSTS = 1000000;
+    const MAX_POSTS = 1000;
     const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID";
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
@@ -429,7 +428,6 @@
       }
       container.innerHTML = html;
       if (adminMode) makePostsSwipeable();
-      document.getElementById('adminBadge').classList.toggle('hidden', !adminMode);
     }
 
     function renderSinglePost(p, isPinned = false, isTopVoted = false) {
@@ -460,8 +458,8 @@
             <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
           </div>
 
-          <!-- Screeches (left) + Don't Look! (right) -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-10">
+          <!-- Screeches left + Don't Look right – snapped to edges -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-1">
             <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
               Screeches <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
@@ -524,6 +522,7 @@
     }
 
     function makePostsSwipeable() {
+      if (!adminMode) return;
       document.querySelectorAll('.post').forEach(post => {
         let startX = 0;
         post.addEventListener('touchstart', e => { startX = e.touches[0].clientX; post.classList.add('swiping'); post.style.transition = 'none'; }, {passive: true});
