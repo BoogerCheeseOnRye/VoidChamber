@@ -444,12 +444,12 @@
             <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
           </div>
 
-          <!-- SCREECHES + DONT LOOK side-by-side on same horizontal plane -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex gap-4">
-            <div onclick="openCommentsModal(${p.id})" class="flex-1 text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 text-center ${isLocked ? 'opacity-40' : ''}">
+          <!-- SCREECHES (left) + DONT LOOK (right) – hyperlinked tight style -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center">
+            <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-1 ${isLocked ? 'opacity-40' : ''}">
               SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
-            <div onclick="openDontLookModal(${p.id})" class="flex-1 text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 text-center ${isLocked ? 'opacity-40' : ''}">
+            <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-1 ${isLocked ? 'opacity-40' : ''}">
               DONT LOOK <span class="neon-lime">(VOTES)</span>
             </div>
           </div>
@@ -637,7 +637,6 @@
       openCommentsModal(currentPostId);
     }
 
-    // DONT LOOK with REAL vote data
     function openDontLookModal(id) {
       currentPostId = id;
       const post = posts.find(p => p.id === id);
@@ -647,8 +646,6 @@
       
       const list = document.getElementById('votersList');
       let html = '';
-      
-      // REAL vote data (use post.voters if backend now provides it; fallback to consistent real-looking list based on score)
       const voters = post.voters && post.voters.length ? post.voters : [
         {name: lastScreamer || "you", vote: 1},
         {name: "voidshadow", vote: -1},
@@ -661,7 +658,6 @@
         {name: "skullking", vote: 1},
         {name: "fireeater", vote: -1}
       ];
-      
       voters.forEach(v => {
         const color = v.vote > 0 ? '#ccff00' : (v.vote < 0 ? '#ff0088' : '#ffffff');
         html += `
