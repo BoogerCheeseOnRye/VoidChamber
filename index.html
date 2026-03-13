@@ -111,6 +111,7 @@
       border: 3px solid #00ffff66;
       box-shadow: 0 0 15px #00ffff44;
       margin: 0.75rem 0;
+      position: relative;
     }
     .post-image {
       width: 100%;
@@ -118,6 +119,19 @@
       object-fit: contain;
       display: block;
       cursor: pointer;
+    }
+    .play-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      color: #fff;
+      text-shadow: 0 0 20px #ff00cc;
+      pointer-events: none;
+      opacity: 0.9;
     }
     .avatar-option {
       width: 64px; height: 64px;
@@ -223,7 +237,7 @@
         <input id="screamName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none">
       </div>
       <textarea id="screamText" class="w-full h-36 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-5 text-lg neon-cyan placeholder-zinc-500 focus:outline-none" placeholder="let it all out into the void..."></textarea>
-      <input id="imgUrl" type="text" placeholder="image / gif / video / html game link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
+      <input id="imgUrl" type="text" placeholder="image / gif / video / youtube / google drive link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
       <div class="flex gap-4 mt-8">
         <button onclick="hideScreamModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">NEVERMIND</button>
         <button onclick="screamNow()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl shadow-[0_0_40px_#ff00cc]">SCREAM INTO VOID</button>
@@ -302,6 +316,50 @@
       {color: '#ff8800', icon: 'fa-eye'},
       {color: '#00ccff', icon: 'fa-crown'}
     ];
+
+    // VIDEO LINK HELPERS – YouTube + Google Drive (easy & clean)
+    function isYouTube(url) {
+      return url && (url.includes('youtube.com') || url.includes('youtu.be'));
+    }
+    function getYouTubeId(url) {
+      if (!url) return '';
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : '';
+    }
+    function getYouTubeThumb(url) {
+      const id = getYouTubeId(url);
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+    }
+    function getYouTubeEmbed(url) {
+      const id = getYouTubeId(url);
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&modestbranding=1&rel=0` : url;
+    }
+
+    function isGoogleDriveVideo(url) {
+      return url && url.includes('drive.google.com') && url.includes('/file/d/');
+    }
+    function getGoogleDriveEmbed(url) {
+      const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      return match && match[1] ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+    }
+
+    function getMediaPreviewHTML(url) {
+      if (isYouTube(url)) {
+        const thumb = getYouTubeThumb(url);
+        return `<div class="image-wrapper relative" onclick="showImageModal('${url}');event.stopImmediatePropagation()">
+          <img src="${thumb}" class="post-image" onerror="this.src='https://i.imgur.com/removed.png'">
+          <div class="play-overlay">▶</div>
+        </div>`;
+      }
+      if (isGoogleDriveVideo(url)) {
+        return `<div class="image-wrapper relative" onclick="showImageModal('${url}');event.stopImmediatePropagation()">
+          <img src="${url}" class="post-image" onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\'bg-[#1a0033] h-48 flex items-center justify-center text-6xl neon-cyan\\'>📹</div>'">
+          <div class="play-overlay">▶</div>
+        </div>`;
+      }
+      return `<div class="image-wrapper"><img src="${url}" class="post-image" onclick="showImageModal('${url}');event.stopImmediatePropagation()"></div>`;
+    }
 
     async function getPSTTimestamp() {
       try {
@@ -408,7 +466,7 @@
             <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
           <div class="scream-text">${escapeHtml(p.content)}</div>
-          ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}');event.stopImmediatePropagation()"></div>` : ''}
+          ${p.image ? getMediaPreviewHTML(p.image) : ''}
           
           <div class="vote-overlay">
             <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
@@ -579,13 +637,15 @@
         videoEl.src = src;
         videoEl.classList.remove('hidden');
         videoEl.play().catch(()=>{});
+      } else if (isYouTube(src)) {
+        iframeEl.src = getYouTubeEmbed(src);
+        iframeEl.classList.remove('hidden');
+      } else if (isGoogleDriveVideo(src)) {
+        iframeEl.src = getGoogleDriveEmbed(src);
+        iframeEl.classList.remove('hidden');
       } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html')) {
         iframeEl.src = src;
         iframeEl.classList.remove('hidden');
-        setTimeout(() => {
-          iframeEl.style.width = '100%';
-          iframeEl.style.height = '100%';
-        }, 30);
       } else {
         imgEl.src = src;
         imgEl.classList.remove('hidden');
@@ -637,7 +697,7 @@
       let lastScrollY = 0;
       document.getElementById('feed').addEventListener('scroll', () => {
         const currentY = document.getElementById('feed').scrollTop;
-        if (currentY < lastScrollY) { // scrolling UP = deeper into the abyss
+        if (currentY < lastScrollY) {
           spawnAbyssParticle(4);
         }
         lastScrollY = currentY;
