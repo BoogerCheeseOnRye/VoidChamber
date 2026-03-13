@@ -10,11 +10,19 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
+    html, body, #feed {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar {
+      display: none;
+    }
+
     body { background: #0a001f; font-family: system-ui, sans-serif; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; }
     .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
     .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
     .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
-    
+   
     .cyber-header {
       text-align: center;
       padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
@@ -23,17 +31,23 @@
       background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
       flex-shrink: 0;
       position: relative;
+      cursor: pointer;
+      user-select: none;
     }
-
     .card {
       background: #1a0033;
       border: 2px solid #ff00cc88;
       box-shadow: 0 0 10px #ff00cc88;
       transition: all 0.3s ease;
+      position: relative;
     }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
     .pinned { border-color: #ffff00; box-shadow: 0 0 25px #ffff0088; }
-
+    .post {
+      transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+      position: relative;
+    }
+    .post.swiping { transition: none; }
     .void-scream-btn {
       background: linear-gradient(45deg, #ff00cc, #00ffff);
       padding: 1.2rem 3rem;
@@ -42,14 +56,13 @@
       bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem));
       left: 50%;
       transform: translateX(-50%);
-      z-index: 50;
+      z-index: 40;
       box-shadow: 0 8px 25px rgba(255,0,204,0.5);
       transition: all 0.2s;
       font-size: 1.25rem;
       font-weight: bold;
     }
     .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
-
     .flavor-text {
       font-size: 0.75rem;
       color: rgba(255,255,255,0.4);
@@ -59,7 +72,6 @@
       background: rgba(0,0,0,0.3);
       border-top: 1px solid #ff00cc33;
     }
-
     .image-wrapper {
       border-radius: 24px;
       overflow: hidden;
@@ -67,7 +79,6 @@
       box-shadow: 0 0 15px #00ffff44;
       margin: 0.75rem 0;
     }
-
     .post-image {
       width: 100%;
       max-height: 260px;
@@ -75,7 +86,6 @@
       display: block;
       cursor: pointer;
     }
-
     .avatar-option {
       width: 64px; height: 64px;
       border-radius: 9999px;
@@ -89,84 +99,62 @@
       transform: scale(1.18);
       box-shadow: 0 0 32px currentColor;
     }
-
-    @keyframes neonPulse {
-      0% { filter: hue-rotate(0deg) brightness(1); }
-      50% { filter: hue-rotate(30deg) brightness(1.3); }
-      100% { filter: hue-rotate(0deg) brightness(1); }
-    }
-    .color-orb {
-      width: 42px; height: 42px;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 0 15px currentColor;
-      border: 3px solid #ffffff22;
-    }
-    .color-orb:hover, .color-orb.selected {
-      transform: scale(1.25);
-      box-shadow: 0 0 30px currentColor;
-    }
-    .name-colored {
-      font-weight: bold;
-      background: linear-gradient(90deg, var(--name-color1), var(--name-color2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: neonPulse 2s infinite linear;
+    .timestamp {
+      position: absolute;
+      bottom: 12px;
+      right: 18px;
+      font-size: 11px;
+      color: #00ffff;
+      text-shadow: 0 0 8px #00ffff;
+      opacity: 0.9;
+      font-family: monospace;
     }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
 
-  <!-- AGE WARNING MODAL (Step 1 – flavor + tiny disclaimer) -->
+  <!-- AGE WARNING MODAL -->
   <div id="ageWarningModal" class="fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center">
       <div class="text-6xl mb-6">⚠️</div>
       <h2 class="neon-pink text-4xl font-black tracking-[-3px]">18+ ONLY</h2>
       <p class="neon-cyan text-lg mt-6 leading-tight">The abyss hungers for your raw screams.<br>Only those who have stared into the void and laughed may enter.</p>
       <div class="flex gap-4 mt-10">
-        <button onclick="hideAgeWarning()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">NEVERMIND</button>
+        <button onclick="window.location.href='https://roblox.com'" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">NEVERMIND</button>
         <button onclick="showQuizModal()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">YES, I'M 18+</button>
       </div>
       <p class="text-[10px] text-zinc-500 mt-8 leading-tight">Disclaimer: Strictly 18+. All screams are temporary, forgotten by the void, and may contain mature dark themes. Enter at your own risk.</p>
     </div>
   </div>
 
-  <!-- VIBE CHECK QUIZ MODAL (Step 2 – 3 questions, one at a time) -->
+  <!-- VIBE CHECK QUIZ MODAL -->
   <div id="quizModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center w-full mx-4">
-      <h3 id="quizTitle" class="neon-lime text-3xl font-black tracking-widest mb-1">VIBE CHECK</h3>
-      <div id="quizStep" class="text-xs neon-cyan mb-6">1/3</div>
-      
+      <h3 class="neon-lime text-3xl font-black tracking-widest mb-1">VIBE CHECK</h3>
       <div id="quizQuestion" class="text-lg neon-cyan mb-8 min-h-[80px]"></div>
-      
-      <div id="quizOptions" class="grid grid-cols-1 gap-3"></div>
-
-      <div class="mt-8 pt-6 border-t border-[#ff00cc]/30">
-        <label class="neon-pink text-xs block mb-3">5. Or type your own vibe into the void...</label>
-        <div class="flex gap-3">
-          <input id="customVibeInput" type="text" class="flex-1 bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 neon-pink focus:outline-none text-sm" placeholder="your custom answer">
-          <button onclick="useCustomVibe()" class="px-8 bg-[#ffff00] text-black font-black rounded-3xl text-xs">USE THIS</button>
+      <div class="mt-8">
+        <input id="customVibeInput" type="text" class="w-full bg-[#0f0022] border-3 border-[#ccff00] rounded-3xl p-6 text-xl neon-lime focus:outline-none placeholder-zinc-500" placeholder="type here...">
+      </div>
+      <div class="mt-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] rounded-3xl p-1">
+        <div class="flex bg-[#1a0033] rounded-3xl">
+          <button onclick="useCustomVibe()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SCREAM THIS VIBE?</button>
+          <button onclick="window.location.href='https://roblox.com'" class="flex-1 py-6 text-white font-black text-xl rounded-3xl border-l border-[#ff00cc]/30">BE A COWARD!</button>
         </div>
       </div>
-
-      <div id="quizFeedback" class="hidden mt-6 text-sm"></div>
     </div>
   </div>
 
-  <!-- IDENTITY MODAL (avatar + name) -->
+  <!-- IDENTITY MODAL -->
   <div id="avatarModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4">
-      <h3 class="neon-lime text-xl font-black tracking-widest mb-4">CHOOSE YOUR IDENTITY (the void knows you have several)</h3>
-      
+      <h3 class="neon-lime text-xl font-black tracking-widest text-center mb-1">CHOOSE YOUR IDENTITY</h3>
+      <p class="neon-lime text-sm tracking-widest text-center mb-6">(the void knows you have several)</p>
       <div class="mb-6">
         <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
         <input id="avatarName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none" placeholder="screamer_666">
       </div>
-
       <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">PICK YOUR AVATAR</label>
       <div id="avatarPickerBig" class="grid grid-cols-4 gap-4 mb-8"></div>
-
       <div class="flex gap-4">
         <button onclick="hideAvatarModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">BACK</button>
         <button onclick="finishOnboarding()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SURE ABOUT THAT?</button>
@@ -175,23 +163,14 @@
   </div>
 
   <!-- SCREAM MODAL -->
-  <div id="screamModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+  <div id="screamModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4">
-      <div class="mb-5">
-        <div class="flex justify-between items-center mb-2">
-          <label class="neon-lime text-sm font-medium tracking-widest">NAME COLOR SCHEME</label>
-          <button onclick="randomizeColorSchemes()" class="text-xs neon-cyan border border-cyan-400 px-4 py-1 rounded-2xl hover:bg-cyan-900">RANDOMIZE</button>
-        </div>
-        <div id="colorOrbs" class="grid grid-cols-8 gap-3"></div>
-      </div>
-
       <div class="mb-5">
         <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
         <input id="screamName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none">
       </div>
       <textarea id="screamText" class="w-full h-36 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-5 text-lg neon-cyan placeholder-zinc-500 focus:outline-none" placeholder="let it all out into the void..."></textarea>
       <input id="imgUrl" type="text" placeholder="image link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
-
       <div class="flex gap-4 mt-8">
         <button onclick="hideScreamModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">NEVERMIND</button>
         <button onclick="screamNow()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl shadow-[0_0_40px_#ff00cc]">SCREAM INTO VOID</button>
@@ -199,20 +178,8 @@
     </div>
   </div>
 
-  <!-- ADMIN PASSWORD MODAL -->
-  <div id="adminLoginModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[95]">
-    <div class="card rounded-3xl p-8 max-w-xs text-center">
-      <h3 class="neon-pink text-2xl mb-4">ADMIN ACCESS</h3>
-      <input id="adminPass" type="password" placeholder="password" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-pink mb-6">
-      <div class="flex gap-4">
-        <button onclick="hideAdminLogin()" class="flex-1 py-5 rounded-3xl border border-zinc-700">CANCEL</button>
-        <button onclick="checkAdminPassword()" class="flex-1 py-5 bg-[#ffff00] text-black font-black">ENTER VOID</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Comments Modal -->
-  <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+  <!-- Comments Modal (screeches) – reviewed & cleaned per all prior instructions -->
+  <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
       <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
         <div id="modalPostHeader" class="neon-pink font-bold text-lg"></div>
@@ -239,38 +206,30 @@
     </div>
   </div>
 
-  <!-- MAIN APP CONTENT – COMPLETELY HIDDEN UNTIL ONBOARDING FINISHES -->
+  <!-- MAIN APP CONTENT -->
   <div id="mainContent" class="flex-1 flex flex-col overflow-hidden" style="display: none;">
-    <div class="cyber-header relative flex-shrink-0">
-      <h1 onclick="showAdminLogin()" class="text-6xl font-black tracking-[-5px] neon-pink cursor-pointer">VOIDSCREAM</h1>
+    <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
+      <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
       <div id="adminBadge" class="hidden absolute top-3 right-4 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-2xl shadow">ADMIN MODE</div>
     </div>
-
     <div id="feed" class="flex-1 overflow-y-auto px-5 py-6 space-y-6"></div>
-
     <div class="flavor-text">
       MAX 500 SCREAMS • THE VOID EATS THE REST • THEY NEVER EXISTED ANYWAY
     </div>
-
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
   </div>
 
   <script>
-    // ============== CORE VARIABLES & CONSTANTS ==============
     let posts = [];
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
-    let selectedColorScheme = null;
-    let adminMode = false;
+    let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
-    const ADMIN_PASSWORD = "BoogerVoid2026";
     const MAX_POSTS = 500;
-    let colorSchemes = [];
-
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
       {color: '#00ffff', icon: 'fa-fire'},
@@ -283,20 +242,39 @@
     ];
     const adminAvatar = {color: '#ffff00', icon: 'fa-crown'};
 
-    function generateColorSchemes() {
-      const baseHues = [280, 190, 80, 340, 160, 300, 20, 220];
-      const schemes = [];
-      for (let i = 0; i < 16; i++) {
-        const hue1 = (baseHues[i % 8] + Math.floor(Math.random() * 60) - 30) % 360;
-        const hue2 = (hue1 + 40 + Math.floor(Math.random() * 50)) % 360;
-        schemes.push({
-          id: i,
-          color1: `hsl(${hue1}, 100%, 65%)`,
-          color2: `hsl(${hue2}, 100%, 75%)`,
-          css: `--name-color1: hsl(${hue1}, 100%, 65%); --name-color2: hsl(${hue2}, 100%, 75%);`
-        });
-      }
-      return schemes;
+    let pollRate = 6000;
+    let pollTimer = null;
+    let previousPostCount = 0;
+    let commentPollTimer = null;
+
+    async function getPSTTimestamp() {
+      try {
+        const res = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Los_Angeles', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          return new Date(data.dateTime).getTime();
+        }
+      } catch(e) {}
+      try {
+        const res = await fetch('https://worldtimeapi.org/api/timezone/America/Los_Angeles', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          return data.unixtime * 1000;
+        }
+      } catch(e) {}
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      return utc - (8 * 3600000);
+    }
+
+    function formatPSTTimestamp(ts) {
+      const date = new Date(ts);
+      const hour = String(date.getHours()).padStart(2, '0');
+      const minute = String(date.getMinutes()).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${hour}:${minute} PST ${day}.${month}.${year}`;
     }
 
     function escapeHtml(unsafe) {
@@ -307,32 +285,42 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
-
+    async function deletePost(id) {
+      if (!adminMode || !confirm("DELETE THIS SCREAM FROM THE VOID FOREVER?")) return;
+      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "deletePost", id})});
+      await loadPosts();
+    }
     async function loadPosts() {
       try {
         const res = await fetch('save.php');
         posts = await res.json();
+        const newScreams = posts.length - previousPostCount;
+        if (newScreams >= 10) {
+          pollRate = Math.min(pollRate + 5, 30000);
+          startPolling();
+        }
+        previousPostCount = posts.length;
         renderFeed();
       } catch(e) {
-        if (document.getElementById('mainContent').style.display !== 'none') {
-          document.getElementById('feed').innerHTML = `<div class="text-center py-20"><div class="text-7xl mb-8">NEBULA</div><div class="text-5xl font-black tracking-[-3px] neon-pink">THE VOID AWAITS</div><p class="neon-cyan text-3xl mt-6">your first scream...</p></div>`;
-        }
+        if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
       }
     }
-
     async function saveNewPost(newPost) {
-      await fetch('save.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(newPost)
-      });
+      await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
       await loadPosts();
     }
-
+    function startPolling() {
+      clearInterval(pollTimer);
+      pollTimer = setInterval(loadPosts, pollRate);
+    }
+    function renderEmptyFeed() {
+      const container = document.getElementById('feed');
+      container.innerHTML = `<div class="flex-1 flex items-center justify-center" style="background: #0a001f;"></div>`;
+    }
     function renderFeed() {
       const container = document.getElementById('feed');
       if (!posts.length) {
-        container.innerHTML = `<div class="text-center py-20"><div class="text-7xl mb-8">NEBULA</div><div class="text-5xl font-black tracking-[-3px] neon-pink">THE VOID AWAITS</div><p class="neon-cyan text-3xl mt-6">your first scream...</p></div>`;
+        renderEmptyFeed();
         return;
       }
       const pinnedPosts = posts.filter(p => p.pinned);
@@ -344,8 +332,8 @@
       }
       html += normalPosts.map(p => renderSinglePost(p)).join('');
       container.innerHTML = html;
+      if (adminMode) makePostsSwipeable();
     }
-
     function renderSinglePost(p, isPinned = false) {
       const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
       const isLocked = !!p.locked;
@@ -355,12 +343,12 @@
           <button onclick="toggleLock(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${isLocked?'bg-red-400 text-black':'border border-red-400'}">${isLocked?'UNLOCK':'LOCK SCREECHES'}</button>
         </div>` : '';
       return `
-        <div class="card rounded-3xl p-6 post overflow-hidden ${isPinned ? 'pinned' : ''}">
+        <div class="card rounded-3xl p-6 post overflow-hidden ${isPinned ? 'pinned' : ''}" data-id="${p.id}">
           <div class="flex items-center gap-4 mb-4">
             <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
               <i class="fa-solid ${av.icon}"></i>
             </div>
-            <div style="${p.colorScheme ? p.colorScheme.css : ''}" class="name-colored text-2xl tracking-tight">${escapeHtml(p.name)}</div>
+            <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
           <div class="scream-text">${escapeHtml(p.content)}</div>
           ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}');event.stopImmediatePropagation()"></div>` : ''}
@@ -368,230 +356,104 @@
             <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
             ${isLocked ? `<div class="text-xs bg-red-900 text-red-300 px-3 py-1 rounded">LOCKED</div>` : ''}
           </div>
+          <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
           ${adminTools}
         </div>`;
     }
-
-    function renderColorOrbs() {
-      const container = document.getElementById('colorOrbs');
-      container.innerHTML = colorSchemes.map((scheme, i) => `
-        <div onclick="selectColorScheme(${i});event.stopImmediatePropagation()" 
-             class="color-orb" 
-             style="background: linear-gradient(90deg, ${scheme.color1}, ${scheme.color2}); --name-color1: ${scheme.color1}; --name-color2: ${scheme.color2};">
-        </div>
-      `).join('');
-      if (colorSchemes.length) selectColorScheme(0);
-    }
-
-    function selectColorScheme(idx) {
-      selectedColorScheme = colorSchemes[idx];
-      document.querySelectorAll('#colorOrbs .color-orb').forEach((el, i) => el.classList.toggle('selected', i === idx));
-    }
-
-    function randomizeColorSchemes() {
-      colorSchemes = generateColorSchemes();
-      renderColorOrbs();
-    }
-
-    // ============== AGE GATE & VIBE CHECK ==============
-    function hideAgeWarning() {
-      document.getElementById('ageWarningModal').classList.add('hidden');
+    function makePostsSwipeable() {
+      document.querySelectorAll('.post').forEach(post => {
+        let startX = 0;
+        post.addEventListener('touchstart', e => { startX = e.touches[0].clientX; post.classList.add('swiping'); post.style.transition = 'none'; }, {passive: true});
+        post.addEventListener('touchmove', e => {
+          const delta = e.touches[0].clientX - startX;
+          if (delta < 0) post.style.transform = `translateX(${delta}px)`;
+        }, {passive: true});
+        post.addEventListener('touchend', e => {
+          post.classList.remove('swiping');
+          const delta = e.changedTouches[0].clientX - startX;
+          post.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+          if (delta < -150) {
+            post.style.transform = 'translateX(-120%)';
+            setTimeout(() => deletePost(parseInt(post.dataset.id)), 250);
+          } else {
+            post.style.transform = 'translateX(0)';
+          }
+        }, {passive: true});
+      });
     }
     function showQuizModal() {
       document.getElementById('ageWarningModal').classList.add('hidden');
       document.getElementById('quizModal').classList.remove('hidden');
-      currentQuizStep = 0;
-      document.getElementById('customVibeInput').value = "";
       loadCurrentQuizQuestion();
     }
-
-    let currentQuizStep = 0;
-    const darkHumorQuestions = [
-      {
-        q: "What does the void do when it reaches 500 screams?",
-        options: ["Keeps them forever", "Eats the oldest ones and they never existed", "Turns them into rainbows", "Posts them on the surface web"],
-        correct: 1
-      },
-      {
-        q: "Only those who have truly stared into the abyss know... what is the real age requirement to scream raw?",
-        options: ["12+", "18+", "666+", "Any age if you're brave enough"],
-        correct: 1
-      },
-      {
-        q: "How does the abyss respond when you scream into it?",
-        options: ["With silence", "With a louder screech that echoes forever", "With a hug", "With a polite thank-you note"],
-        correct: 1
-      }
+    const weirdQuestions = [
+      "What does the void do when it reaches 500 screams?",
+      "Only those who have truly stared into the abyss know... what is the real age requirement to scream raw?",
+      "How does the abyss respond when you scream into it?",
+      "What is the favorite sound of the void?",
+      "When the abyss forgets a scream, what happens?"
     ];
-
     function loadCurrentQuizQuestion() {
-      const qData = darkHumorQuestions[currentQuizStep];
-      document.getElementById('quizStep').textContent = `${currentQuizStep + 1}/3`;
-      document.getElementById('quizQuestion').innerHTML = qData.q;
-      
-      const optionsHTML = qData.options.map((opt, i) => `
-        <button onclick="selectQuizAnswer(${i})" class="w-full py-5 bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl text-left px-6 neon-pink hover:border-[#ffff00] transition text-base">${opt}</button>
-      `).join('');
-      document.getElementById('quizOptions').innerHTML = optionsHTML;
-      document.getElementById('quizFeedback').classList.add('hidden');
+      const randomQ = weirdQuestions[Math.floor(Math.random() * weirdQuestions.length)];
+      document.getElementById('quizQuestion').innerHTML = randomQ;
       document.getElementById('customVibeInput').value = "";
+      document.getElementById('customVibeInput').focus();
     }
-
-    function selectQuizAnswer(selectedIdx) {
-      const qData = darkHumorQuestions[currentQuizStep];
-      const feedback = document.getElementById('quizFeedback');
-      
-      if (selectedIdx === qData.correct) {
-        feedback.innerHTML = `<span class="text-lime-400">✅ THE VOID APPROVES</span>`;
-        feedback.classList.remove('hidden');
-        
-        setTimeout(() => {
-          currentQuizStep++;
-          if (currentQuizStep < 3) {
-            loadCurrentQuizQuestion();
-          } else {
-            document.getElementById('quizModal').classList.add('hidden');
-            showAvatarModal();
-          }
-        }, 800);
-      } else {
-        feedback.innerHTML = `<span class="text-red-400">❌ THE VOID REJECTS THIS ANSWER • TRY AGAIN</span>`;
-        feedback.classList.remove('hidden');
-      }
-    }
-
     function useCustomVibe() {
       const input = document.getElementById('customVibeInput').value.trim();
       if (!input) return;
       customVibe = input;
-      
-      const feedback = document.getElementById('quizFeedback');
-      feedback.innerHTML = `<span class="text-lime-400">✅ CUSTOM VIBE ACCEPTED</span>`;
-      feedback.classList.remove('hidden');
-      
-      setTimeout(() => {
-        currentQuizStep++;
-        if (currentQuizStep < 3) {
-          loadCurrentQuizQuestion();
-        } else {
-          document.getElementById('quizModal').classList.add('hidden');
-          showAvatarModal();
-        }
-      }, 800);
+      document.getElementById('quizModal').classList.add('hidden');
+      showAvatarModal();
     }
-
     function showAvatarModal() {
       document.getElementById('avatarModal').classList.remove('hidden');
       const picker = document.getElementById('avatarPickerBig');
       picker.innerHTML = avatarOptions.map((av, i) => `
-        <div onclick="selectAvatarFromModal(${i});event.stopImmediatePropagation()" 
-             style="background:${av.color}" 
-             class="avatar-option ${i===0?'selected':''}">
+        <div onclick="selectAvatarFromModal(${i});event.stopImmediatePropagation()" style="background:${av.color}" class="avatar-option ${i===0?'selected':''}">
           <i class="fa-solid ${av.icon}"></i>
         </div>
       `).join('');
       document.getElementById('avatarName').value = lastScreamer;
       selectedAvatar = avatarOptions[0];
     }
-
-    function hideAvatarModal() {
-      document.getElementById('avatarModal').classList.add('hidden');
-    }
-
+    function hideAvatarModal() { document.getElementById('avatarModal').classList.add('hidden'); }
     function selectAvatarFromModal(idx) {
       selectedAvatar = avatarOptions[idx];
       document.querySelectorAll('#avatarPickerBig .avatar-option').forEach((el, i) => el.classList.toggle('selected', i===idx));
     }
-
     async function finishOnboarding() {
       const nameInput = document.getElementById('avatarName').value.trim();
       if (nameInput) lastScreamer = nameInput;
       localStorage.setItem('lastScreamer', lastScreamer);
+      localStorage.setItem('vcOnboardingComplete', 'true');
       hideAvatarModal();
-
-      // SHOW THE MAIN FEED NOW – onboarding complete
       document.getElementById('mainContent').style.display = 'flex';
-
       if (customVibe) {
-        const newPost = {
-          type: "post",
-          name: lastScreamer || "anonymous",
-          content: customVibe,
-          image: null,
-          avatar: selectedAvatar,
-          colorScheme: null,
-          comments: []
-        };
+        const newPost = {type: "post", name: lastScreamer || "anonymous", content: customVibe, image: null, avatar: selectedAvatar, comments: []};
         await saveNewPost(newPost);
         customVibe = "";
       }
     }
-
     function showScreamModal() {
       document.getElementById('screamModal').classList.remove('hidden');
       document.getElementById('screamName').value = lastScreamer;
-      colorSchemes = generateColorSchemes();
-      renderColorOrbs();
+      document.getElementById('screamText').value = '';
+      document.getElementById('imgUrl').value = '';
     }
-
-    function hideScreamModal() {
-      document.getElementById('screamModal').classList.add('hidden');
-    }
-
-    function showAdminLogin() {
-      document.getElementById('adminLoginModal').classList.remove('hidden');
-      document.getElementById('adminPass').focus();
-    }
-    function hideAdminLogin() {
-      document.getElementById('adminLoginModal').classList.add('hidden');
-    }
-    function checkAdminPassword() {
-      const pass = document.getElementById('adminPass').value;
-      if (pass === ADMIN_PASSWORD) {
-        adminMode = true;
-        document.getElementById('adminBadge').classList.remove('hidden');
-        hideAdminLogin();
-        renderFeed();
-        alert("✅ ADMIN MODE ENABLED\nYou can now pin (max 3), lock, and wipe the entire chamber.");
-      } else {
-        alert("❌ Wrong password");
-      }
-    }
-
-    async function adminWipe() {
-      if (!adminMode || !confirm("WIPE THE ENTIRE FEED? This cannot be undone.")) return;
-      await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({type: "admin_wipe"})});
-      await loadPosts();
-    }
-
-    async function togglePin(id) {
-      if (!adminMode) return;
-      const pinnedCount = posts.filter(p => p.pinned).length;
-      const target = posts.find(p => p.id === id);
-      if (target.pinned) {
-        await saveNewPost({type: "admin_unpin", id});
-      } else {
-        if (pinnedCount >= 3) return alert("Max 3 pinned screams allowed");
-        await saveNewPost({type: "admin_pin", id});
-      }
-    }
-
-    async function toggleLock(id) {
-      if (!adminMode) return;
-      await saveNewPost({type: "admin_lock", id});
-    }
-
+    function hideScreamModal() { document.getElementById('screamModal').classList.add('hidden'); }
     async function screamNow() {
       const name = document.getElementById('screamName').value.trim() || "anonymous";
       const content = document.getElementById('screamText').value.trim();
       if (!content) return alert("You must scream something!");
+      const id = await getPSTTimestamp();
       const newPost = {
         type: "post",
+        id: id,
         name: name,
         content: content,
         image: document.getElementById('imgUrl').value.trim() || null,
         avatar: adminMode ? adminAvatar : selectedAvatar,
-        colorScheme: selectedColorScheme,
         comments: []
       };
       await saveNewPost(newPost);
@@ -599,7 +461,6 @@
       lastScreamer = name;
       localStorage.setItem('lastScreamer', name);
     }
-
     function openCommentsModal(id) {
       currentPostId = id;
       const post = posts.find(p => p.id === id);
@@ -617,19 +478,19 @@
           <div>${escapeHtml(c.content)}</div>
         </div>
       `).join('') || `<div class="text-center py-12 text-zinc-400">no screeches yet...</div>`;
+      clearInterval(commentPollTimer);
+      commentPollTimer = setInterval(() => { loadPosts().then(() => openCommentsModal(currentPostId)); }, 3000);
     }
-
     function hideCommentsModal() {
       document.getElementById('commentsModal').classList.add('hidden');
+      clearInterval(commentPollTimer);
     }
-
     async function submitModalComment() {
       const text = document.getElementById('modalCommentText').value.trim();
       if (!text || !currentPostId) return;
       await saveNewPost({type: "comment", postId: currentPostId, name: lastScreamer || "screecher", content: text});
       openCommentsModal(currentPostId);
     }
-
     function showImageModal(src) {
       document.getElementById('imageModal').classList.remove('hidden');
       const img = document.getElementById('modalImage');
@@ -637,26 +498,33 @@
       document.getElementById('downloadBtn').href = src;
       document.getElementById('downloadBtn').download = "void-scream.jpg";
     }
-
-    function closeImageModal() {
-      document.getElementById('imageModal').classList.add('hidden');
+    function closeImageModal() { document.getElementById('imageModal').classList.add('hidden'); }
+    async function togglePin(id) {
+      if (!adminMode) return;
+      const pinnedCount = posts.filter(p => p.pinned).length;
+      const target = posts.find(p => p.id === id);
+      if (target.pinned) await saveNewPost({type: "admin_unpin", id});
+      else {
+        if (pinnedCount >= 3) return alert("Max 3 pinned screams allowed");
+        await saveNewPost({type: "admin_pin", id});
+      }
     }
-
-    // ============== INIT ==============
+    async function toggleLock(id) {
+      if (!adminMode) return;
+      await saveNewPost({type: "admin_lock", id});
+    }
+    async function refreshFeedAndScroll() {
+      await loadPosts();
+      document.getElementById('feed').scrollTo({ top: 0, behavior: 'smooth' });
+    }
     window.onload = () => {
-      // Show onboarding flow first – main content stays hidden
-      document.getElementById('ageWarningModal').classList.remove('hidden');
-      document.getElementById('mainContent').style.display = 'none';
-      
+      const onboardingComplete = localStorage.getItem('vcOnboardingComplete') === 'true';
+      if (onboardingComplete) document.getElementById('mainContent').style.display = 'flex';
+      else document.getElementById('ageWarningModal').classList.remove('hidden');
       loadPosts();
-      setInterval(loadPosts, 4000);
-
+      startPolling();
       document.addEventListener('keydown', e => {
-        if (e.key === "Escape") {
-          document.querySelectorAll('div[id$="Modal"]').forEach(modal => {
-            if (!modal.classList.contains('hidden')) modal.classList.add('hidden');
-          });
-        }
+        if (e.key === "Escape") document.querySelectorAll('div[id$="Modal"]').forEach(modal => { if (!modal.classList.contains('hidden')) modal.classList.add('hidden'); });
       });
     };
   </script>
