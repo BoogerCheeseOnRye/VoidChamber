@@ -230,8 +230,15 @@
 
   <!-- Image Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
-    <div onclick="hideImageModal()" class="absolute inset-0"></div>
-    <img id="modalImage" src="" class="max-h-[90vh] max-w-[90vw] rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
+    <div class="card rounded-3xl w-full max-w-[95vw] max-h-[94vh] mx-4 flex flex-col">
+      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between shrink-0">
+        <div class="neon-pink font-bold text-lg">VOID VIEW</div>
+        <button onclick="hideImageModal()" class="text-3xl neon-cyan">X</button>
+      </div>
+      <div class="flex-1 flex items-center justify-center p-8 bg-[#0a001f] overflow-hidden">
+        <img id="modalImage" src="" class="max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
+      </div>
+    </div>
   </div>
 
   <!-- 2 PLAYER VOIDLINK MODAL -->
@@ -634,7 +641,7 @@
       document.getElementById('imageModal').classList.add('hidden');
     }
 
-    // === 2 PLAYER VOIDLINK MODAL + WEBSOCKET FLOW (added exactly as requested - no other changes) ===
+    // === 2 PLAYER VOIDLINK MODAL + WEBSOCKET FLOW ===
     let duoWS = null;
     let currentRoomId = null;
     let isDuoHost = false;
