@@ -257,7 +257,7 @@
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything at 100 screams • scream responsibly</div>
+    <div class="flavor-text">the void forgets everything at 500 screams • scream responsibly</div>
   </div>
 
 <script>
@@ -267,7 +267,7 @@
     let selectedAvatar = null;
     let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
-    const MAX_POSTS = 100;
+    const MAX_POSTS = 500; // expanded for thousands of people
     const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID";
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
@@ -457,8 +457,8 @@
             <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
           </div>
 
-          <!-- SCREECHES + Don't Look! Voter Integrity Exposed! – opposite direction (tighter to center) -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-2">
+          <!-- ScREEEEECheS left + Don't Look! Voter Integrity Exposed! right – pushed opposite direction (further apart) -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-10">
             <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
               ScREEEEECheS <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
