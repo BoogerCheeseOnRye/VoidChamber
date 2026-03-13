@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOIDSCREAM</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff00cc">
+  <link rel="apple-touch-icon" href="icon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { background: #0a001f; font-family: system-ui, sans-serif; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; margin: 0; }
+    .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
+    .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
+    .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
+    
+    .cyber-header {
+      text-align: center;
+      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
+      border-bottom: 2px solid #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
+      flex-shrink: 0;
+    }
+
+    .card {
+      background: #1a0033;
+      border: 2px solid #ff00cc88;
+      box-shadow: 0 0 10px #ff00cc88;
+      transition: all 0.3s ease;
+    }
+    .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
+
+    .void-scream-btn {
+      background: linear-gradient(45deg, #ff00cc, #00ffff);
+      padding: 1.2rem 3rem;
+      border-radius: 9999px;
+      position: fixed;
+      bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      box-shadow: 0 8px 25px rgba(255,0,204,0.5);
+      transition: all 0.2s;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
+
+    .flavor-text {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 0.5rem 1rem;
+      flex-shrink: 0;
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid #ff00cc33;
+    }
+
+    /* Strong rounded image wrapper for modal + feed */
+    .image-wrapper {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 3px solid #00ffff66;
+      box-shadow: 0 0 15px #00ffff44;
+      margin: 0.75rem 0;
+    }
+
+    .post-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+      display: block;
+      cursor: pointer;
+    }
+
+    .avatar-option {
+      width: 64px; height: 64px;
+      border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      transition: all 0.2s;
+      box-shadow: 0 0 16px currentColor;
+      cursor: pointer;
+    }
+    .avatar-option:hover, .avatar-option.selected {
+      transform: scale(1.18);
+      box-shadow: 0 0 32px currentColor;
+    }
+  </style>
+</head>
+<body class="text-white h-[100dvh] overflow-hidden flex flex-col">
+
+  <div class="cyber-header relative flex-shrink-0">
+    <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
+    <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
+  </div>
+
+  <div id="feed" class="flex-1 overflow-y-auto px-5 py-6 space-y-6"></div>
+
+  <div class="flavor-text">
+    MAX 100 SCREAMS • THE VOID EATS THE REST • THEY NEVER EXISTED ANYWAY
+  </div>
+
+  <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
+    <i class="fa-solid fa-skull"></i> SCREAM
+  </button>
+
+  <!-- Scream Modal -->
+  <div id="screamModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+    <div class="card rounded-3xl p-6 w-full max-w-lg mx-4">
+      <div class="mb-5"><label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
+        <input id="screamName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none">
+      </div>
+      <textarea id="screamText" class="w-full h-36 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-5 text-lg neon-cyan placeholder-zinc-500 focus:outline-none scream-text" placeholder="let it all out into the void..."></textarea>
+      <input id="imgUrl" type="text" placeholder="image link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
+
+      <div class="mt-6">
+        <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">CHOOSE YOUR NEON AVATAR</label>
+        <div id="avatarPicker" class="grid grid-cols-4 gap-4"></div>
+      </div>
+
+      <div class="flex gap-4 mt-8">
+        <button onclick="hideScreamModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">NEVERMIND</button>
+        <button onclick="screamNow()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl shadow-[0_0_40px_#ff00cc]">SCREAM INTO VOID</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments Modal -->
+  <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
+      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
+        <div class="neon-pink font-bold text-lg">SCREECHES</div>
+        <button onclick="hideCommentsModal()" class="text-3xl neon-cyan">✕</button>
+      </div>
+      <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
+      <div class="p-5 border-t border-[#ff00cc]/30 bg-[#1a0033]">
+        <div class="flex gap-3">
+          <input id="modalCommentText" type="text" placeholder="Write a screech or reply..." class="flex-1 bg-[#0f0022] border border-[#ccff00] rounded-3xl px-5 py-3 text-sm neon-lime focus:outline-none">
+          <button onclick="submitModalComment()" class="bg-[#ff00cc] hover:bg-[#ff0088] px-7 rounded-3xl font-bold">SCREECH</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Viewer Modal (strong rounded corners) -->
+  <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
+    <div class="relative max-w-[95%] max-h-[95%] image-wrapper">
+      <button onclick="closeImageModal()" class="absolute -top-4 -right-4 bg-black text-white text-4xl w-10 h-10 rounded-full flex items-center justify-center z-10">✕</button>
+      <img id="modalImage" class="max-h-[85vh] max-w-full" alt="Scream image">
+      <a id="downloadBtn" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#ff00cc] hover:bg-[#ff0088] text-[#0a001f] font-bold px-8 py-4 rounded-3xl flex items-center gap-3">
+        <i class="fa-solid fa-download"></i> DOWNLOAD IMAGE
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    let posts = [];
+    let lastScreamer = localStorage.getItem('lastScreamer') || "";
+    let currentPostId = null;
+    let selectedAvatar = null;
+
+    const avatarOptions = [
+      {color: '#ff00cc', icon: 'fa-skull'},
+      {color: '#00ffff', icon: 'fa-fire'},
+      {color: '#ccff00', icon: 'fa-ghost'},
+      {color: '#ff0088', icon: 'fa-star'},
+      {color: '#00ff88', icon: 'fa-bolt'},
+      {color: '#8800ff', icon: 'fa-dragon'},
+      {color: '#ff8800', icon: 'fa-eye'},
+      {color: '#00ccff', icon: 'fa-crown'}
+    ];
+
+    async function loadPosts() {
+      try {
+        const res = await fetch('save.php');
+        posts = await res.json();
+        renderFeed();
+      } catch(e) {
+        document.getElementById('feed').innerHTML = `<div class="text-center py-20"><div class="text-7xl mb-8">🌌</div><div class="text-5xl font-black tracking-[-3px] neon-pink">THE VOID AWAITS</div><p class="neon-cyan text-3xl mt-6">your first scream...</p></div>`;
+      }
+    }
+
+    async function saveNewPost(newPost) {
+      await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
+      await loadPosts();
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('feed');
+      if (!posts.length) {
+        container.innerHTML = `<div class="text-center py-20"><div class="text-7xl mb-8">🌌</div><div class="text-5xl font-black tracking-[-3px] neon-pink">THE VOID AWAITS</div><p class="neon-cyan text-3xl mt-6">your first scream...</p></div>`;
+        return;
+      }
+      container.innerHTML = posts.map(p => {
+        const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
+        return `
+          <div class="card rounded-3xl p-6 post overflow-hidden">
+            <div class="flex items-center gap-4 mb-4">
+              <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
+                <i class="fa-solid ${av.icon}"></i>
+              </div>
+              <div class="neon-pink font-bold text-2xl tracking-tight">${escapeHtml(p.name)}</div>
+            </div>
+            <div class="scream-text">${escapeHtml(p.content)}</div>
+            ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}')"></div>` : ''}
+            <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3">
+              <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
+              <div class="text-[#ff00cc] text-sm">VIEW ALL →</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showImageModal(src) {
+      document.getElementById('modalImage').src = src;
+      document.getElementById('downloadBtn').href = src;
+      document.getElementById('downloadBtn').download = "scream-image.jpg";
+      document.getElementById('imageModal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    function showScreamModal() {
+      document.getElementById('screamModal').classList.remove('hidden');
+      document.getElementById('screamName').value = lastScreamer;
+
+      const picker = document.getElementById('avatarPicker');
+      picker.innerHTML = '';
+      const shuffled = [...avatarOptions].sort(() => Math.random() - 0.5);
+      shuffled.forEach((av, i) => {
+        const div = document.createElement('div');
+        div.className = `avatar-option flex items-center justify-center ${i===0 ? 'selected' : ''}`;
+        div.style.color = av.color;
+        div.innerHTML = `<i class="fa-solid ${av.icon}"></i>`;
+        div.onclick = () => {
+          document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedAvatar = av;
+        };
+        picker.appendChild(div);
+      });
+      selectedAvatar = shuffled[0];
+    }
+
+    function hideScreamModal() {
+      document.getElementById('screamModal').classList.add('hidden');
+    }
+
+    async function screamNow() {
+      const text = document.getElementById('screamText').value.trim();
+      if (!text) return alert("the void is still waiting...");
+      const name = document.getElementById('screamName').value.trim() || "Anonymous Screamer";
+      lastScreamer = name; localStorage.setItem('lastScreamer', name);
+
+      const newPost = {
+        id: Date.now(),
+        name,
+        content: text,
+        image: document.getElementById('imgUrl').value.trim() || "",
+        avatar: selectedAvatar,
+        comments: []
+      };
+      await saveNewPost({type: "post", ...newPost});
+
+      hideScreamModal();
+      document.getElementById('screamText').value = '';
+      document.getElementById('imgUrl').value = '';
+    }
+
+    function openCommentsModal(postId) {
+      currentPostId = postId;
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+      const av = post.avatar || {color: '#ff00cc', icon: 'fa-skull'};
+      const list = document.getElementById('commentsList');
+      list.innerHTML = `
+        <div class="mb-8 p-6 bg-[#0f0022] rounded-3xl">
+          <div class="flex items-center gap-4 mb-4">
+            <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_25px_${av.color}]">
+              <i class="fa-solid ${av.icon}"></i>
+            </div>
+            <div class="neon-pink font-bold">${escapeHtml(post.name)}</div>
+          </div>
+          <div class="scream-text">${escapeHtml(post.content)}</div>
+          ${post.image ? `<div class="image-wrapper"><img src="${post.image}" class="post-image"></div>` : ''}
+        </div>
+        ${post.comments && post.comments.length ? post.comments.map(c => `
+          <div class="mb-6 p-4 bg-[#0f0022]/70 rounded-2xl">
+            <div class="neon-lime font-bold mb-1">${escapeHtml(c.name)}</div>
+            <div class="text-white/90">${escapeHtml(c.text)}</div>
+          </div>
+        `).join('') : '<div class="text-center py-12 neon-cyan/70">No screeches yet... be the first!</div>'}
+      `;
+      document.getElementById('commentsModal').classList.remove('hidden');
+    }
+
+    function hideCommentsModal() {
+      document.getElementById('commentsModal').classList.add('hidden');
+    }
+
+    async function submitModalComment() {
+      const text = document.getElementById('modalCommentText').value.trim();
+      if (!text) return;
+      const name = lastScreamer || "Anonymous Screamer";
+
+      await fetch('save.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({type: "comment", postId: currentPostId, name, text})
+      });
+
+      document.getElementById('modalCommentText').value = '';
+      await loadPosts();
+      openCommentsModal(currentPostId);
+    }
+
+    setInterval(loadPosts, 4000);
+    window.onload = () => { loadPosts(); };
+  </script>
+</body>
+</html>
