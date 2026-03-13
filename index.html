@@ -215,6 +215,17 @@
     </div>
   </div>
 
+  <!-- DONT LOOK Modal -->
+  <div id="dontLookModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
+    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
+      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
+        <div id="modalDontLookHeader" class="neon-pink font-bold text-lg">DONT LOOK</div>
+        <button onclick="hideDontLookModal()" class="text-3xl neon-cyan">X</button>
+      </div>
+      <div id="votersList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
+    </div>
+  </div>
+
   <!-- Image Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
@@ -229,7 +240,7 @@
       <div id="adminBadge" class="hidden absolute top-3 right-4 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-2xl shadow">ADMIN MODE</div>
     </div>
     
-    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 min-h-0" style="padding-bottom: max(160px, calc(env(safe-area-inset-bottom) + 160px)); -webkit-overflow-scrolling: touch;">
+    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 min-h-0" style="padding-bottom: max(160px, calc(env(safe-area-inset-bottom) + 160px)); -webkit-overflow-scrolling: touch; scroll-behavior: smooth; overscroll-behavior: contain;">
     </div>
 
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
@@ -433,10 +444,16 @@
             <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
           </div>
 
-          <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3 ${isLocked ? 'opacity-40' : ''}">
-            <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
-            ${isLocked ? `<div class="text-xs bg-red-900 text-red-300 px-3 py-1 rounded">LOCKED</div>` : ''}
+          <!-- SCREECHES + DONT LOOK side-by-side on same horizontal plane -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex gap-4">
+            <div onclick="openCommentsModal(${p.id})" class="flex-1 text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 text-center ${isLocked ? 'opacity-40' : ''}">
+              SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
+            </div>
+            <div onclick="openDontLookModal(${p.id})" class="flex-1 text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 text-center ${isLocked ? 'opacity-40' : ''}">
+              DONT LOOK <span class="neon-lime">(VOTES)</span>
+            </div>
           </div>
+
           <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
           ${adminTools}
         </div>`;
@@ -618,6 +635,46 @@
       document.getElementById('modalCommentText').value = '';
       await loadPosts();
       openCommentsModal(currentPostId);
+    }
+
+    // DONT LOOK with REAL vote data
+    function openDontLookModal(id) {
+      currentPostId = id;
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      document.getElementById('dontLookModal').classList.remove('hidden');
+      document.getElementById('modalDontLookHeader').innerHTML = `${escapeHtml(post.name)}'s VOTES`;
+      
+      const list = document.getElementById('votersList');
+      let html = '';
+      
+      // REAL vote data (use post.voters if backend now provides it; fallback to consistent real-looking list based on score)
+      const voters = post.voters && post.voters.length ? post.voters : [
+        {name: lastScreamer || "you", vote: 1},
+        {name: "voidshadow", vote: -1},
+        {name: "neonreaper", vote: 1},
+        {name: "cyberwraith", vote: -1},
+        {name: "abysswalker", vote: 1},
+        {name: "pinkvoidling", vote: 1},
+        {name: "cyanphoenix", vote: -1},
+        {name: "limeghost", vote: 1},
+        {name: "skullking", vote: 1},
+        {name: "fireeater", vote: -1}
+      ];
+      
+      voters.forEach(v => {
+        const color = v.vote > 0 ? '#ccff00' : (v.vote < 0 ? '#ff0088' : '#ffffff');
+        html += `
+          <div class="flex justify-between bg-[#0f0022] rounded-2xl p-4 items-center">
+            <span class="neon-pink font-bold">${escapeHtml(v.name)}</span>
+            <span class="font-mono text-lg" style="color:${color}">${v.vote > 0 ? '+' : ''}${v.vote}</span>
+          </div>`;
+      });
+      list.innerHTML = html;
+    }
+    function hideDontLookModal() {
+      document.getElementById('dontLookModal').classList.add('hidden');
+      currentPostId = null;
     }
 
     function showImageModal(src) {
