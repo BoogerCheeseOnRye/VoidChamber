@@ -147,20 +147,17 @@
     </div>
   </div>
 
-  <!-- VIBE CHECK QUIZ MODAL -->
+  <!-- VIBE CHECK MODAL – now second 18+ gate with snarky dark humor (3 lines) -->
   <div id="quizModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
-    <div class="card rounded-3xl p-8 max-w-md text-center w-full mx-4">
-      <h3 class="neon-lime text-3xl font-black tracking-widest mb-1">VIBE CHECK</h3>
-      <div id="quizQuestion" class="text-lg neon-cyan mb-8 min-h-[80px]"></div>
-      <div class="mt-8">
-        <input id="customVibeInput" type="text" class="w-full bg-[#0f0022] border-3 border-[#ccff00] rounded-3xl p-6 text-xl neon-lime focus:outline-none placeholder-zinc-500" placeholder="type here...">
+    <div class="card rounded-3xl p-8 max-w-md text-center">
+      <div class="text-6xl mb-6">ABYSS WARNING</div>
+      <h2 class="neon-pink text-4xl font-black tracking-[-3px]">18+ OR GET SWALLOWED</h2>
+      <p class="neon-cyan text-lg mt-6 leading-tight">The void only accepts the truly fucked up.<br>Anyone else gets digested alive.<br>Still here? Good. Now scream like you mean it.</p>
+      <div class="flex gap-4 mt-10">
+        <button onclick="window.location.href='https://roblox.com'" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">NEVERMIND</button>
+        <button onclick="finishVibeCheck()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">YES I'M FUCKED</button>
       </div>
-      <div class="mt-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] rounded-3xl p-1">
-        <div class="flex bg-[#1a0033] rounded-3xl">
-          <button onclick="useCustomVibe()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SCREAM THIS VIBE?</button>
-          <button onclick="window.location.href='https://roblox.com'" class="flex-1 py-6 text-white font-black text-xl rounded-3xl border-l border-[#ff00cc]/30">BE A COWARD!</button>
-        </div>
-      </div>
+      <p class="text-[10px] text-zinc-500 mt-8 leading-tight">Strictly 18+. The abyss doesn't do refunds.</p>
     </div>
   </div>
 
@@ -444,12 +441,12 @@
             <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
           </div>
 
-          <!-- SCREECHES (left) + DONT LOOK (right) – hyperlinked tight style -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center">
-            <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-1 ${isLocked ? 'opacity-40' : ''}">
+          <!-- SCREECHES + DONT LOOK – properly left/right aligned with card margins + tight hyperlink style -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-1">
+            <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
               SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
-            <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-1 ${isLocked ? 'opacity-40' : ''}">
+            <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
               DONT LOOK <span class="neon-lime">(VOTES)</span>
             </div>
           </div>
@@ -531,22 +528,13 @@
     function showQuizModal() {
       document.getElementById('ageWarningModal').classList.add('hidden');
       document.getElementById('quizModal').classList.remove('hidden');
-      loadCurrentQuizQuestion();
     }
-    const weirdQuestions = ["What does the void do when it reaches 500 screams?","Only those who have truly stared into the abyss know... what is the real age requirement to scream raw?","How does the abyss respond when you scream into it?","What is the favorite sound of the void?","When the abyss forgets a scream, what happens?"];
-    function loadCurrentQuizQuestion() {
-      const randomQ = weirdQuestions[Math.floor(Math.random() * weirdQuestions.length)];
-      document.getElementById('quizQuestion').innerHTML = randomQ;
-      document.getElementById('customVibeInput').value = "";
-      document.getElementById('customVibeInput').focus();
-    }
-    function useCustomVibe() {
-      const input = document.getElementById('customVibeInput').value.trim();
-      if (!input) return;
-      customVibe = input;
+
+    function finishVibeCheck() {
       document.getElementById('quizModal').classList.add('hidden');
       showAvatarModal();
     }
+
     function showAvatarModal() {
       document.getElementById('avatarModal').classList.remove('hidden');
       const picker = document.getElementById('avatarPickerBig');
@@ -570,11 +558,6 @@
       localStorage.setItem('vcOnboardingComplete', 'true');
       hideAvatarModal();
       document.getElementById('mainContent').style.display = 'flex';
-      if (customVibe) {
-        const newPost = {type: "post", id: await getPSTTimestamp(), name: lastScreamer, content: customVibe, image: null, avatar: selectedAvatar, comments: []};
-        await saveNewPost(newPost);
-        customVibe = "";
-      }
       loadPosts();
     }
 
