@@ -697,7 +697,15 @@
         iframeEl.classList.remove('hidden');
         iframeEl.style.width = '100%';
         iframeEl.style.height = '100%';
-      } else if (isGameLink(src) || ext === 'html' || ext === 'htm' || lowerSrc.includes('.html')) {
+      } else if (isGameLink(src)) {
+        // FORCED 16:9 FOR THE AAA GAMING LINK
+        iframeEl.src = src;
+        iframeEl.classList.remove('hidden');
+        iframeEl.style.width = '100%';
+        iframeEl.style.height = 'auto';
+        iframeEl.style.aspectRatio = '16 / 9';
+        iframeEl.style.maxHeight = '82vh';
+      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html')) {
         iframeEl.src = src;
         iframeEl.classList.remove('hidden');
         iframeEl.style.width = '100%';
