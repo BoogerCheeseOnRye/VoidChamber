@@ -262,7 +262,7 @@
     let pollTimer = null;
     let previousPostCount = 0;
     let voteDebounce = {};
-    let voteScores = {}; // ← persisted outside any function for the session
+    let voteScores = {};
 
     async function getPSTTimestamp() {
       try {
@@ -371,22 +371,36 @@
         renderEmptyFeed();
         return;
       }
-      const pinnedPosts = posts.filter(p => p.pinned);
+      const adminPinned = posts.filter(p => p.pinned);
       let normalPosts = posts.filter(p => !p.pinned);
       
-      // Top-voted auto-sorts to top of feed
-      normalPosts.sort((a, b) => {
-        const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
-        const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
-        return scoreB - scoreA;
+      normalPosts.forEach(p => {
+        if (voteScores[p.id] === undefined) voteScores[p.id] = p.voteScore || 0;
       });
 
-      let html = '';
-      if (pinnedPosts.length) {
-        html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">PINNED BY ADMIN</div>`;
-        html += pinnedPosts.map(p => renderSinglePost(p, true)).join('');
+      const topVotedIndex = normalPosts.reduce((maxIdx, post, idx, arr) => {
+        const score = voteScores[post.id] !== undefined ? voteScores[post.id] : (post.voteScore || 0);
+        const maxScore = voteScores[arr[maxIdx].id] !== undefined ? voteScores[arr[maxIdx].id] : (arr[maxIdx].voteScore || 0);
+        return score > maxScore ? idx : maxIdx;
+      }, 0);
+
+      let topVotedPost = null;
+      if (normalPosts.length > 0) {
+        topVotedPost = normalPosts.splice(topVotedIndex, 1)[0];
       }
-      html += normalPosts.map(p => renderSinglePost(p)).join('');
+
+      let html = '';
+      if (adminPinned.length) {
+        html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">PINNED BY ADMIN</div>`;
+        html += adminPinned.map(p => renderSinglePost(p, true)).join('');
+      }
+      if (topVotedPost) {
+        html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">TOP VOTED BY THE VOID</div>`;
+        html += renderSinglePost(topVotedPost, true);
+      }
+      if (normalPosts.length) {
+        html += normalPosts.map(p => renderSinglePost(p)).join('');
+      }
       container.innerHTML = html;
       if (adminMode) makePostsSwipeable();
       document.getElementById('adminBadge').classList.toggle('hidden', !adminMode);
@@ -412,7 +426,6 @@
           <div class="scream-text">${escapeHtml(p.content)}</div>
           ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}');event.stopImmediatePropagation()"></div>` : ''}
           
-          <!-- VOTE UI (look kept 100% identical) -->
           <div class="vote-overlay">
             <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
             <span id="voteScore-${p.id}" class="neon-lime font-mono text-sm">${effectiveScore}</span>
@@ -428,7 +441,6 @@
         </div>`;
     }
 
-    // === VOTING WITH PERSISTENCE (number now lives outside + local posts update) ===
     async function castVote(postId, direction) {
       if (!lastScreamer) {
         console.log("%cvoid needs your name first", "color:#ff00cc");
@@ -440,7 +452,6 @@
       const scoreEl = document.getElementById(`voteScore-${postId}`);
       if (!scoreEl) return;
 
-      // Update persisted map + local posts array
       const current = voteScores[postId] !== undefined ? voteScores[postId] : (posts.find(p => p.id === postId)?.voteScore || 0);
       voteScores[postId] = current + direction;
       const post = posts.find(p => p.id === postId);
@@ -455,7 +466,6 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({type: "vote", postId, name: lastScreamer, vote: direction})
         });
-        // let polling / loadPosts handle any further backend sync
       } catch(e) {
         console.log("%cvoid swallowed vote — retrying", "color:#ff00cc");
         setTimeout(() => loadPosts(), 800);
@@ -463,7 +473,7 @@
         setTimeout(() => {
           delete voteDebounce[postId];
           scoreEl.classList.remove('vote-score-flash');
-          renderFeed(); // force re-sort with new top-voted
+          renderFeed();
         }, 600);
       }
     }
@@ -495,7 +505,6 @@
       window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    // === ONBOARDING + INIT (unchanged) ===
     function showQuizModal() {
       document.getElementById('ageWarningModal').classList.add('hidden');
       document.getElementById('quizModal').classList.remove('hidden');
