@@ -109,6 +109,95 @@
       opacity: 0.9;
       font-family: monospace;
     }
+/* === EXTREME NEON 2-LINE CHEVRON VOTE OVERLAY — VOID READY === */
+.vote-overlay {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(18, 0, 42, 0.08);     /* nearly disappeared */
+  border: 1px solid rgba(0, 255, 220, 0.18);
+  box-shadow: 0 0 10px rgba(0,255,255,0.25);
+  padding: 6px 10px;
+  border-radius: 9999px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 25;
+  transition: all 0.25s cubic-bezier(0.23,1,0.32,1);
+  backdrop-filter: blur(1px);
+}
+
+.vote-overlay:hover {
+  background: rgba(25, 0, 55, 0.15);
+  transform: scale(1.15);
+  box-shadow: 
+    0 0 18px #00ffff,
+    0 0 32px #ff00cc,
+    0 0 48px #ccff00;
+}
+
+.neon-chevron {
+  position: relative;
+  width: 27px;
+  height: 19px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.neon-chevron::before,
+.neon-chevron::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  width: 13.5px;
+  height: 3.8px;
+  background: #ff00cc;
+  transition: all 0.18s ease;
+  box-shadow: 
+    0 0 5px #ff00cc,
+    0 0 12px #ff00cc,
+    0 0 20px #00ffff,
+    0 0 28px #ccff00;
+}
+
+.neon-chevron:hover::before,
+.neon-chevron:hover::after {
+  background: #ccff00;
+  box-shadow: 
+    0 0 10px #ff00ff,
+    0 0 20px #00ffff,
+    0 0 32px #ccff00,
+    0 0 45px #ff0088;
+}
+
+/* Proper 2-line chevron ^ (upvote) */
+.neon-chevron.up::before { left: 1px;  transform: rotate(-43deg); }
+.neon-chevron.up::after  { right: 1px; transform: rotate(43deg); }
+
+/* Downvote flips to v shape */
+.neon-chevron.down { transform: rotate(180deg); }
+
+.vote-score {
+  font-family: monospace;
+  font-size: 1.48rem;
+  font-weight: 900;
+  color: #ccff00;
+  text-shadow: 
+    0 0 8px #ccff00,
+    0 0 18px #00ffff,
+    0 0 26px #ff00cc,
+    0 0 34px #ccff00;
+  min-width: 36px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.vote-flash { animation: votePulse 0.45s ease; }
+@keyframes votePulse {
+  0% { transform: scale(1.65); text-shadow: 0 0 40px #ff00ff; }
+  100% { transform: scale(1); }
+}
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
@@ -527,6 +616,62 @@
         if (e.key === "Escape") document.querySelectorAll('div[id$="Modal"]').forEach(modal => { if (!modal.classList.contains('hidden')) modal.classList.add('hidden'); });
       });
     };
+      /* === ADDED VOTE SYSTEM (pure additions – backend already ready) === */
+async function castVote(postId, value) {
+  if (!lastScreamer) lastScreamer = prompt("SCREAM YOUR NAME TO VOTE INTO THE VOID") || "void_ghost";
+  const payload = { type: "vote", postId: postId, name: lastScreamer, vote: value };
+  await fetch('save.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+  // Optimistic flash + full sync (keeps it snappy + correct)
+  document.querySelectorAll(`.post[data-id="${postId}"] .vote-score`).forEach(s => s.classList.add('vote-flash'));
+  setTimeout(() => loadPosts(), 80);
+}
+
+function injectNeonVoteOverlays() {
+  document.querySelectorAll('.post').forEach(postEl => {
+    const id = parseInt(postEl.dataset.id);
+    const postData = posts.find(p => p.id === id);
+    if (!postData || postEl.querySelector('.vote-overlay')) return;
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'vote-overlay';
+    overlay.innerHTML = `
+      <div class="neon-chevron up" onclick="castVote(${id}, 1);event.stopImmediatePropagation()"></div>
+      <div class="vote-score">${postData.voteScore || 0}</div>
+      <div class="neon-chevron down" onclick="castVote(${id}, -1);event.stopImmediatePropagation()"></div>
+    `;
+    // Dark-humor tooltip troll
+    overlay.title = (postData.voteScore > 5) ? "VOID KING — THE ABYSS LOVES YOU" : "THE VOID IS WATCHING...";
+    postEl.style.position = 'relative';
+    postEl.appendChild(overlay);
+  });
+}
+
+function sortFeedByVotes() {
+  const feed = document.getElementById('feed');
+  const children = Array.from(feed.children);
+  const pinned = children.filter(el => el.classList.contains('pinned'));
+  let normals = children.filter(el => !el.classList.contains('pinned'));
+  
+  normals.sort((a, b) => {
+    const idA = parseInt(a.dataset.id);
+    const idB = parseInt(b.dataset.id);
+    const scoreA = posts.find(p => p.id === idA)?.voteScore || 0;
+    const scoreB = posts.find(p => p.id === idB)?.voteScore || 0;
+    return (scoreB - scoreA) || (idB - idA); // highest votes first, then newest
+  });
+  
+  feed.innerHTML = [...pinned, ...normals].map(el => el.outerHTML).join('');
+  injectNeonVoteOverlays(); // re-inject after reorder
+}
+      // AUTO-APPLY VOTES + SORT ON EVERY RENDER/POLL (pure addition)
+const originalRenderFeed = renderFeed;
+renderFeed = function() {
+  originalRenderFeed();
+  sortFeedByVotes();
+};
+setInterval(() => {
+  if (document.getElementById('feed').children.length) injectNeonVoteOverlays();
+}, 800);
   </script>
 </body>
 </html>
