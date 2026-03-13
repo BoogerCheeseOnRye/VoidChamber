@@ -129,7 +129,7 @@
     .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
-    .top-voted-badge {
+    .void-bubble {
       background: #ccff0033;
       border: 1px solid #ccff00;
       color: #ccff00;
@@ -141,6 +141,9 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       font-weight: bold;
+      display: inline-block;
+      white-space: nowrap;
+      min-width: auto;
     }
   </style>
 </head>
@@ -257,7 +260,7 @@
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything at 500 screams • scream responsibly</div>
+    <div class="flavor-text">the void forgets everything at 1000 screams • scream responsibly or the abyss will eat your soul, your mom, and your future children while laughing in 666 languages • premium checkmarks coming soon for the truly deranged • anonymity is baked in harder than your ex's excuses</div>
   </div>
 
 <script>
@@ -267,7 +270,7 @@
     let selectedAvatar = null;
     let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
-    const MAX_POSTS = 500; // expanded for thousands of people
+    const MAX_POSTS = 1000;
     const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID";
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
@@ -441,7 +444,7 @@
         </div>` : '';
       return `
         <div class="card rounded-3xl p-6 post overflow-hidden ${isPinned ? 'pinned' : ''}" data-id="${p.id}">
-          ${isTopVoted ? `<div class="top-voted-badge">${TOP_VOTED_TEXT}</div>` : ''}
+          ${isTopVoted ? `<div class="void-bubble">${TOP_VOTED_TEXT}</div>` : ''}
           <div class="flex items-center gap-4 mb-4">
             <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
               <i class="fa-solid ${av.icon}"></i>
@@ -457,7 +460,6 @@
             <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
           </div>
 
-          <!-- ScREEEEECheS left + Don't Look! Voter Integrity Exposed! right – pushed opposite direction (further apart) -->
           <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-10">
             <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
               ScREEEEECheS <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
