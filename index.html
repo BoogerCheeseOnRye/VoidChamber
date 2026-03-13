@@ -160,7 +160,7 @@
     </div>
   </div>
 
-  <!-- VIBE CHECK MODAL – second 18+ gate with snarky dark humor -->
+  <!-- VIBE CHECK MODAL -->
   <div id="quizModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center">
       <div class="text-6xl mb-6">ABYSS WARNING</div>
@@ -229,7 +229,7 @@
   <div id="dontLookModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
       <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
-        <div id="modalDontLookHeader" class="neon-pink font-bold text-lg">don't look! (Votes)</div>
+        <div id="modalDontLookHeader" class="neon-pink font-bold text-lg">Don't Look! Voter Integrity Exposed!</div>
         <button onclick="hideDontLookModal()" class="text-3xl neon-cyan">X</button>
       </div>
       <div id="votersList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
@@ -268,7 +268,7 @@
     let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
     const MAX_POSTS = 100;
-    const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID"; // ← const as requested
+    const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID";
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
       {color: '#00ffff', icon: 'fa-fire'},
@@ -457,13 +457,13 @@
             <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
           </div>
 
-          <!-- SCREECHES + don't look! (Votes) – pushed further from center -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-8">
+          <!-- SCREECHES + Don't Look! Voter Integrity Exposed! – opposite direction (tighter to center) -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-2">
             <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
+              ScREEEEECheS <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
             <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              don't look! <span class="neon-lime">(Votes)</span>
+              Don't Look! Voter Integrity Exposed! <span class="neon-lime">(Votes)</span>
             </div>
           </div>
 
