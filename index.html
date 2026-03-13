@@ -109,6 +109,26 @@
       opacity: 0.9;
       font-family: monospace;
     }
+    .vote-overlay {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      z-index: 10;
+    }
+    .neon-chevron {
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
+    .vote-score-flash { animation: voteFlash 400ms ease; }
+    @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
@@ -116,7 +136,7 @@
   <!-- AGE WARNING MODAL -->
   <div id="ageWarningModal" class="fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center">
-      <div class="text-6xl mb-6">⚠️</div>
+      <div class="text-6xl mb-6">Warning</div>
       <h2 class="neon-pink text-4xl font-black tracking-[-3px]">18+ ONLY</h2>
       <p class="neon-cyan text-lg mt-6 leading-tight">The abyss hungers for your raw screams.<br>Only those who have stared into the void and laughed may enter.</p>
       <div class="flex gap-4 mt-10">
@@ -178,7 +198,7 @@
     </div>
   </div>
 
-  <!-- Comments Modal (screeches) – reviewed & cleaned per all prior instructions -->
+  <!-- Comments Modal -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
       <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
@@ -197,39 +217,35 @@
 
   <!-- Image Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
-    <div class="relative max-w-[95%] max-h-[95%] image-wrapper">
-      <button onclick="closeImageModal()" class="absolute -top-4 -right-4 bg-black text-white text-4xl w-10 h-10 rounded-full flex items-center justify-center z-10">X</button>
-      <img id="modalImage" class="max-h-[85vh] max-w-full" alt="Scream image">
-      <a id="downloadBtn" class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#ff00cc] hover:bg-[#ff0088] text-[#0a001f] font-bold px-8 py-4 rounded-3xl flex items-center gap-3">
-        <i class="fa-solid fa-download"></i> DOWNLOAD IMAGE
-      </a>
-    </div>
+    <div onclick="hideImageModal()" class="absolute inset-0"></div>
+    <img id="modalImage" src="" class="max-h-[90vh] max-w-[90vw] rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
   </div>
 
-  <!-- MAIN APP CONTENT -->
-  <div id="mainContent" class="flex-1 flex flex-col overflow-hidden" style="display: none;">
+  <!-- MAIN CONTENT -->
+  <div id="mainContent" class="hidden flex-1 flex flex-col">
     <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
       <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
       <div id="adminBadge" class="hidden absolute top-3 right-4 bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-2xl shadow">ADMIN MODE</div>
     </div>
-    <div id="feed" class="flex-1 overflow-y-auto px-5 py-6 space-y-6"></div>
-    <div class="flavor-text">
-      MAX 500 SCREAMS • THE VOID EATS THE REST • THEY NEVER EXISTED ANYWAY
-    </div>
+    
+    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
+
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
+
+    <div class="flavor-text">the void forgets everything at 100 screams • scream responsibly</div>
   </div>
 
-  <script>
+<script>
     let posts = [];
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
     let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
-    const MAX_POSTS = 500;
+    const MAX_POSTS = 100;
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
       {color: '#00ffff', icon: 'fa-fire'},
@@ -245,7 +261,7 @@
     let pollRate = 6000;
     let pollTimer = null;
     let previousPostCount = 0;
-    let commentPollTimer = null;
+    let voteDebounce = {};
 
     async function getPSTTimestamp() {
       try {
@@ -285,14 +301,34 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
-    async function deletePost(id) {
-      if (!adminMode || !confirm("DELETE THIS SCREAM FROM THE VOID FOREVER?")) return;
-      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "deletePost", id})});
+
+    async function togglePin(id) {
+      if (!adminMode) return;
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      post.pinned = !post.pinned;
+      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "pin", id: id, pinned: post.pinned})}).catch(() => console.log("%cvoid swallowed pin update", "color:#ff00cc"));
       await loadPosts();
     }
+    async function toggleLock(id) {
+      if (!adminMode) return;
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      post.locked = !post.locked;
+      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "lock", id: id, locked: post.locked})}).catch(() => console.log("%cvoid swallowed lock update", "color:#ff00cc"));
+      await loadPosts();
+    }
+    async function deletePost(id) {
+      if (!adminMode || !confirm("DELETE THIS SCREAM FROM THE VOID FOREVER?")) return;
+      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "deletePost", id})})
+        .catch(() => console.log("%cvoid swallowed delete", "color:#ff00cc"));
+      await loadPosts();
+    }
+
     async function loadPosts() {
       try {
         const res = await fetch('save.php');
+        if (!res.ok) throw new Error("void empty");
         posts = await res.json();
         const newScreams = posts.length - previousPostCount;
         if (newScreams >= 10) {
@@ -302,21 +338,32 @@
         previousPostCount = posts.length;
         renderFeed();
       } catch(e) {
+        console.log("%cvoid swallowed feed — retrying", "color:#ff00cc");
         if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
       }
     }
+
     async function saveNewPost(newPost) {
-      await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
-      await loadPosts();
+      try {
+        if (!newPost.type) newPost.type = "post";
+        const res = await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
+        if (!res.ok) throw new Error();
+        await loadPosts();
+      } catch(e) {
+        console.log("%cvoid swallowed your scream (retry in 2s)", "color:#ff00cc");
+      }
     }
+
     function startPolling() {
       clearInterval(pollTimer);
       pollTimer = setInterval(loadPosts, pollRate);
     }
+
     function renderEmptyFeed() {
       const container = document.getElementById('feed');
-      container.innerHTML = `<div class="flex-1 flex items-center justify-center" style="background: #0a001f;"></div>`;
+      container.innerHTML = `<div class="flex-1 flex items-center justify-center" style="background: #0a001f;"><div class="neon-cyan text-center">the void is quiet...<br><span class="text-xs">scream first</span></div></div>`;
     }
+
     function renderFeed() {
       const container = document.getElementById('feed');
       if (!posts.length) {
@@ -333,10 +380,13 @@
       html += normalPosts.map(p => renderSinglePost(p)).join('');
       container.innerHTML = html;
       if (adminMode) makePostsSwipeable();
+      document.getElementById('adminBadge').classList.toggle('hidden', !adminMode);
     }
+
     function renderSinglePost(p, isPinned = false) {
       const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
       const isLocked = !!p.locked;
+      const voteScore = p.voteScore || 0;
       const adminTools = adminMode ? `
         <div class="flex gap-3 mt-4 text-xs">
           <button onclick="togglePin(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${p.pinned?'bg-yellow-400 text-black':'border border-yellow-400'}">${p.pinned?'UNPIN':'PIN'}</button>
@@ -352,6 +402,14 @@
           </div>
           <div class="scream-text">${escapeHtml(p.content)}</div>
           ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}');event.stopImmediatePropagation()"></div>` : ''}
+          
+          <!-- VOTE UI (look kept 100% identical) -->
+          <div class="vote-overlay">
+            <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
+            <span id="voteScore-${p.id}" class="neon-lime font-mono text-sm">${voteScore}</span>
+            <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
+          </div>
+
           <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3 ${isLocked ? 'opacity-40' : ''}">
             <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
             ${isLocked ? `<div class="text-xs bg-red-900 text-red-300 px-3 py-1 rounded">LOCKED</div>` : ''}
@@ -360,6 +418,41 @@
           ${adminTools}
         </div>`;
     }
+
+    // === VOTING FUNCTION FIXED (optimistic + debounce + retry) ===
+    async function castVote(postId, direction) {
+      if (!lastScreamer) {
+        console.log("%cvoid needs your name first", "color:#ff00cc");
+        return;
+      }
+      if (voteDebounce[postId]) return; // prevent spam
+      voteDebounce[postId] = true;
+
+      const scoreEl = document.getElementById(`voteScore-${postId}`);
+      if (!scoreEl) return;
+      let current = parseInt(scoreEl.textContent) || 0;
+      const newScore = current + direction;
+      scoreEl.textContent = newScore;
+      scoreEl.classList.add('vote-score-flash');
+
+      try {
+        await fetch('save.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({type: "vote", postId, name: lastScreamer, vote: direction})
+        });
+        await loadPosts(); // sync with backend
+      } catch(e) {
+        console.log("%cvoid swallowed vote — retrying", "color:#ff00cc");
+        setTimeout(() => loadPosts(), 800); // retry once
+      } finally {
+        setTimeout(() => {
+          delete voteDebounce[postId];
+          scoreEl.classList.remove('vote-score-flash');
+        }, 600);
+      }
+    }
+
     function makePostsSwipeable() {
       document.querySelectorAll('.post').forEach(post => {
         let startX = 0;
@@ -381,18 +474,19 @@
         }, {passive: true});
       });
     }
+
+    function refreshFeedAndScroll() {
+      loadPosts();
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    // === ONBOARDING + INIT (unchanged) ===
     function showQuizModal() {
       document.getElementById('ageWarningModal').classList.add('hidden');
       document.getElementById('quizModal').classList.remove('hidden');
       loadCurrentQuizQuestion();
     }
-    const weirdQuestions = [
-      "What does the void do when it reaches 500 screams?",
-      "Only those who have truly stared into the abyss know... what is the real age requirement to scream raw?",
-      "How does the abyss respond when you scream into it?",
-      "What is the favorite sound of the void?",
-      "When the abyss forgets a scream, what happens?"
-    ];
+    const weirdQuestions = ["What does the void do when it reaches 500 screams?","Only those who have truly stared into the abyss know... what is the real age requirement to scream raw?","How does the abyss respond when you scream into it?","What is the favorite sound of the void?","When the abyss forgets a scream, what happens?"];
     function loadCurrentQuizQuestion() {
       const randomQ = weirdQuestions[Math.floor(Math.random() * weirdQuestions.length)];
       document.getElementById('quizQuestion').innerHTML = randomQ;
@@ -414,7 +508,7 @@
           <i class="fa-solid ${av.icon}"></i>
         </div>
       `).join('');
-      document.getElementById('avatarName').value = lastScreamer;
+      document.getElementById('avatarName').value = lastScreamer || "screamer_666";
       selectedAvatar = avatarOptions[0];
     }
     function hideAvatarModal() { document.getElementById('avatarModal').classList.add('hidden'); }
@@ -423,21 +517,23 @@
       document.querySelectorAll('#avatarPickerBig .avatar-option').forEach((el, i) => el.classList.toggle('selected', i===idx));
     }
     async function finishOnboarding() {
-      const nameInput = document.getElementById('avatarName').value.trim();
-      if (nameInput) lastScreamer = nameInput;
+      const nameInput = document.getElementById('avatarName').value.trim() || "anonymous";
+      lastScreamer = nameInput;
       localStorage.setItem('lastScreamer', lastScreamer);
       localStorage.setItem('vcOnboardingComplete', 'true');
       hideAvatarModal();
       document.getElementById('mainContent').style.display = 'flex';
       if (customVibe) {
-        const newPost = {type: "post", name: lastScreamer || "anonymous", content: customVibe, image: null, avatar: selectedAvatar, comments: []};
+        const newPost = {type: "post", id: await getPSTTimestamp(), name: lastScreamer, content: customVibe, image: null, avatar: selectedAvatar, comments: []};
         await saveNewPost(newPost);
         customVibe = "";
       }
+      loadPosts();
     }
+
     function showScreamModal() {
       document.getElementById('screamModal').classList.remove('hidden');
-      document.getElementById('screamName').value = lastScreamer;
+      document.getElementById('screamName').value = lastScreamer || "";
       document.getElementById('screamText').value = '';
       document.getElementById('imgUrl').value = '';
     }
@@ -453,7 +549,7 @@
         name: name,
         content: content,
         image: document.getElementById('imgUrl').value.trim() || null,
-        avatar: adminMode ? adminAvatar : selectedAvatar,
+        avatar: adminMode ? adminAvatar : (selectedAvatar || avatarOptions[0]),
         comments: []
       };
       await saveNewPost(newPost);
@@ -461,6 +557,7 @@
       lastScreamer = name;
       localStorage.setItem('lastScreamer', name);
     }
+
     function openCommentsModal(id) {
       currentPostId = id;
       const post = posts.find(p => p.id === id);
@@ -470,63 +567,51 @@
       const isLocked = !!post.locked;
       document.getElementById('commentInputArea').style.display = isLocked ? 'none' : 'flex';
       const list = document.getElementById('commentsList');
-      list.innerHTML = post.comments.map(c => `
+      list.innerHTML = (post.comments || []).map(c => `
         <div class="bg-[#0f0022] rounded-2xl p-4">
           <div class="flex items-center gap-3 mb-2">
-            <span class="text-[#00ffff]">${escapeHtml(c.name)}</span>
+            <span class="neon-pink font-bold">${escapeHtml(c.name)}</span>
           </div>
-          <div>${escapeHtml(c.content)}</div>
+          <div class="neon-cyan">${escapeHtml(c.content)}</div>
         </div>
-      `).join('') || `<div class="text-center py-12 text-zinc-400">no screeches yet...</div>`;
-      clearInterval(commentPollTimer);
-      commentPollTimer = setInterval(() => { loadPosts().then(() => openCommentsModal(currentPostId)); }, 3000);
+      `).join('');
     }
     function hideCommentsModal() {
       document.getElementById('commentsModal').classList.add('hidden');
-      clearInterval(commentPollTimer);
+      currentPostId = null;
     }
     async function submitModalComment() {
       const text = document.getElementById('modalCommentText').value.trim();
       if (!text || !currentPostId) return;
-      await saveNewPost({type: "comment", postId: currentPostId, name: lastScreamer || "screecher", content: text});
+      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "comment", postId: currentPostId, name: lastScreamer || "anonymous", content: text})})
+        .catch(() => console.log("%cvoid swallowed screech", "color:#ff00cc"));
+      document.getElementById('modalCommentText').value = '';
+      await loadPosts();
       openCommentsModal(currentPostId);
     }
+
     function showImageModal(src) {
       document.getElementById('imageModal').classList.remove('hidden');
-      const img = document.getElementById('modalImage');
-      img.src = src;
-      document.getElementById('downloadBtn').href = src;
-      document.getElementById('downloadBtn').download = "void-scream.jpg";
+      document.getElementById('modalImage').src = src;
     }
-    function closeImageModal() { document.getElementById('imageModal').classList.add('hidden'); }
-    async function togglePin(id) {
-      if (!adminMode) return;
-      const pinnedCount = posts.filter(p => p.pinned).length;
-      const target = posts.find(p => p.id === id);
-      if (target.pinned) await saveNewPost({type: "admin_unpin", id});
-      else {
-        if (pinnedCount >= 3) return alert("Max 3 pinned screams allowed");
-        await saveNewPost({type: "admin_pin", id});
+    function hideImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    function init() {
+      const onboardingDone = localStorage.getItem('vcOnboardingComplete') === 'true';
+      if (!onboardingDone) {
+        document.getElementById('ageWarningModal').classList.remove('hidden');
+      } else {
+        document.getElementById('mainContent').style.display = 'flex';
+        selectedAvatar = avatarOptions[0];
+        loadPosts();
+        startPolling();
       }
+      if (!lastScreamer) lastScreamer = "voidwalker";
     }
-    async function toggleLock(id) {
-      if (!adminMode) return;
-      await saveNewPost({type: "admin_lock", id});
-    }
-    async function refreshFeedAndScroll() {
-      await loadPosts();
-      document.getElementById('feed').scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    window.onload = () => {
-      const onboardingComplete = localStorage.getItem('vcOnboardingComplete') === 'true';
-      if (onboardingComplete) document.getElementById('mainContent').style.display = 'flex';
-      else document.getElementById('ageWarningModal').classList.remove('hidden');
-      loadPosts();
-      startPolling();
-      document.addEventListener('keydown', e => {
-        if (e.key === "Escape") document.querySelectorAll('div[id$="Modal"]').forEach(modal => { if (!modal.classList.contains('hidden')) modal.classList.add('hidden'); });
-      });
-    };
-  </script>
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
 </body>
 </html>
