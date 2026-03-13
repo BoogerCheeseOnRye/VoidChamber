@@ -129,6 +129,19 @@
     .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
+    .top-voted-badge {
+      background: #ccff0033;
+      border: 1px solid #ccff00;
+      color: #ccff00;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
@@ -147,7 +160,7 @@
     </div>
   </div>
 
-  <!-- VIBE CHECK MODAL – now second 18+ gate with snarky dark humor (3 lines) -->
+  <!-- VIBE CHECK MODAL – second 18+ gate with snarky dark humor -->
   <div id="quizModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center">
       <div class="text-6xl mb-6">ABYSS WARNING</div>
@@ -216,7 +229,7 @@
   <div id="dontLookModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
       <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
-        <div id="modalDontLookHeader" class="neon-pink font-bold text-lg">DONT LOOK</div>
+        <div id="modalDontLookHeader" class="neon-pink font-bold text-lg">don't look! (Votes)</div>
         <button onclick="hideDontLookModal()" class="text-3xl neon-cyan">X</button>
       </div>
       <div id="votersList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
@@ -255,6 +268,7 @@
     let adminMode = localStorage.getItem('vcAdmin') === 'true';
     let customVibe = "";
     const MAX_POSTS = 100;
+    const TOP_VOTED_TEXT = "TOP VOTED BY THE VOID"; // ← const as requested
     const avatarOptions = [
       {color: '#ff00cc', icon: 'fa-skull'},
       {color: '#00ffff', icon: 'fa-fire'},
@@ -272,6 +286,7 @@
     let previousPostCount = 0;
     let voteDebounce = {};
     let voteScores = {};
+    let votedPosts = new Set();
 
     async function getPSTTimestamp() {
       try {
@@ -401,24 +416,24 @@
       let html = '';
       if (adminPinned.length) {
         html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">PINNED BY ADMIN</div>`;
-        html += adminPinned.map(p => renderSinglePost(p, true)).join('');
+        html += adminPinned.map(p => renderSinglePost(p, true, false)).join('');
       }
       if (topVotedPost) {
-        html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">TOP VOTED BY THE VOID</div>`;
-        html += renderSinglePost(topVotedPost, true);
+        html += renderSinglePost(topVotedPost, false, true);
       }
       if (normalPosts.length) {
-        html += normalPosts.map(p => renderSinglePost(p)).join('');
+        html += normalPosts.map(p => renderSinglePost(p, false, false)).join('');
       }
       container.innerHTML = html;
       if (adminMode) makePostsSwipeable();
       document.getElementById('adminBadge').classList.toggle('hidden', !adminMode);
     }
 
-    function renderSinglePost(p, isPinned = false) {
+    function renderSinglePost(p, isPinned = false, isTopVoted = false) {
       const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
       const isLocked = !!p.locked;
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
+      const hasVoted = votedPosts.has(p.id) || (p.voters && p.voters.some(v => v.name === lastScreamer));
       const adminTools = adminMode ? `
         <div class="flex gap-3 mt-4 text-xs">
           <button onclick="togglePin(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${p.pinned?'bg-yellow-400 text-black':'border border-yellow-400'}">${p.pinned?'UNPIN':'PIN'}</button>
@@ -426,6 +441,7 @@
         </div>` : '';
       return `
         <div class="card rounded-3xl p-6 post overflow-hidden ${isPinned ? 'pinned' : ''}" data-id="${p.id}">
+          ${isTopVoted ? `<div class="top-voted-badge">${TOP_VOTED_TEXT}</div>` : ''}
           <div class="flex items-center gap-4 mb-4">
             <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
               <i class="fa-solid ${av.icon}"></i>
@@ -436,18 +452,18 @@
           ${p.image ? `<div class="image-wrapper"><img src="${p.image}" class="post-image" onclick="showImageModal('${p.image}');event.stopImmediatePropagation()"></div>` : ''}
           
           <div class="vote-overlay">
-            <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
+            <i onclick="${hasVoted ? '' : `castVote(${p.id}, 1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
             <span id="voteScore-${p.id}" class="neon-lime font-mono text-sm">${effectiveScore}</span>
-            <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
+            <i onclick="${hasVoted ? '' : `castVote(${p.id}, -1);event.stopImmediatePropagation()`}" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] ${hasVoted ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"></i>
           </div>
 
-          <!-- SCREECHES + DONT LOOK – properly left/right aligned with card margins + tight hyperlink style -->
-          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-1">
+          <!-- SCREECHES + don't look! (Votes) – pushed further from center -->
+          <div class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex justify-between items-center px-8">
             <div onclick="openCommentsModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
               SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span>
             </div>
             <div onclick="openDontLookModal(${p.id})" class="text-sm neon-cyan cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl px-3 py-2 ${isLocked ? 'opacity-40' : ''}">
-              DONT LOOK <span class="neon-lime">(VOTES)</span>
+              don't look! <span class="neon-lime">(Votes)</span>
             </div>
           </div>
 
@@ -466,6 +482,10 @@
         console.log("%cvoid doesn't let you vote on your own scream", "color:#ff00cc");
         return;
       }
+      if (votedPosts.has(postId)) {
+        console.log("%cvoid says one vote per scream only", "color:#ff00cc");
+        return;
+      }
       if (voteDebounce[postId]) return;
       voteDebounce[postId] = true;
 
@@ -479,6 +499,8 @@
 
       scoreEl.textContent = voteScores[postId];
       scoreEl.classList.add('vote-score-flash');
+
+      votedPosts.add(postId);
 
       try {
         await fetch('save.php', {
@@ -629,18 +651,7 @@
       
       const list = document.getElementById('votersList');
       let html = '';
-      const voters = post.voters && post.voters.length ? post.voters : [
-        {name: lastScreamer || "you", vote: 1},
-        {name: "voidshadow", vote: -1},
-        {name: "neonreaper", vote: 1},
-        {name: "cyberwraith", vote: -1},
-        {name: "abysswalker", vote: 1},
-        {name: "pinkvoidling", vote: 1},
-        {name: "cyanphoenix", vote: -1},
-        {name: "limeghost", vote: 1},
-        {name: "skullking", vote: 1},
-        {name: "fireeater", vote: -1}
-      ];
+      const voters = post.voters || [];
       voters.forEach(v => {
         const color = v.vote > 0 ? '#ccff00' : (v.vote < 0 ? '#ff0088' : '#ffffff');
         html += `
@@ -649,6 +660,9 @@
             <span class="font-mono text-lg" style="color:${color}">${v.vote > 0 ? '+' : ''}${v.vote}</span>
           </div>`;
       });
+      if (voters.length === 0) {
+        html = '<div class="text-center neon-cyan py-10">No votes yet... the void is watching.</div>';
+      }
       list.innerHTML = html;
     }
     function hideDontLookModal() {
