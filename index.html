@@ -262,6 +262,7 @@
     let pollTimer = null;
     let previousPostCount = 0;
     let voteDebounce = {};
+    let voteScores = {}; // ← persisted outside any function for the session
 
     async function getPSTTimestamp() {
       try {
@@ -371,7 +372,15 @@
         return;
       }
       const pinnedPosts = posts.filter(p => p.pinned);
-      const normalPosts = posts.filter(p => !p.pinned);
+      let normalPosts = posts.filter(p => !p.pinned);
+      
+      // Top-voted auto-sorts to top of feed
+      normalPosts.sort((a, b) => {
+        const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
+        const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
+        return scoreB - scoreA;
+      });
+
       let html = '';
       if (pinnedPosts.length) {
         html += `<div class="text-xs neon-lime tracking-widest mb-2 pl-2">PINNED BY ADMIN</div>`;
@@ -386,7 +395,7 @@
     function renderSinglePost(p, isPinned = false) {
       const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
       const isLocked = !!p.locked;
-      const voteScore = p.voteScore || 0;
+      const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
       const adminTools = adminMode ? `
         <div class="flex gap-3 mt-4 text-xs">
           <button onclick="togglePin(${p.id});event.stopImmediatePropagation()" class="px-4 py-1 rounded-2xl ${p.pinned?'bg-yellow-400 text-black':'border border-yellow-400'}">${p.pinned?'UNPIN':'PIN'}</button>
@@ -406,7 +415,7 @@
           <!-- VOTE UI (look kept 100% identical) -->
           <div class="vote-overlay">
             <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
-            <span id="voteScore-${p.id}" class="neon-lime font-mono text-sm">${voteScore}</span>
+            <span id="voteScore-${p.id}" class="neon-lime font-mono text-sm">${effectiveScore}</span>
             <i onclick="castVote(${p.id}, -1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088]"></i>
           </div>
 
@@ -419,20 +428,25 @@
         </div>`;
     }
 
-    // === VOTING FUNCTION FIXED (optimistic + debounce + retry) ===
+    // === VOTING WITH PERSISTENCE (number now lives outside + local posts update) ===
     async function castVote(postId, direction) {
       if (!lastScreamer) {
         console.log("%cvoid needs your name first", "color:#ff00cc");
         return;
       }
-      if (voteDebounce[postId]) return; // prevent spam
+      if (voteDebounce[postId]) return;
       voteDebounce[postId] = true;
 
       const scoreEl = document.getElementById(`voteScore-${postId}`);
       if (!scoreEl) return;
-      let current = parseInt(scoreEl.textContent) || 0;
-      const newScore = current + direction;
-      scoreEl.textContent = newScore;
+
+      // Update persisted map + local posts array
+      const current = voteScores[postId] !== undefined ? voteScores[postId] : (posts.find(p => p.id === postId)?.voteScore || 0);
+      voteScores[postId] = current + direction;
+      const post = posts.find(p => p.id === postId);
+      if (post) post.voteScore = voteScores[postId];
+
+      scoreEl.textContent = voteScores[postId];
       scoreEl.classList.add('vote-score-flash');
 
       try {
@@ -441,14 +455,15 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({type: "vote", postId, name: lastScreamer, vote: direction})
         });
-        await loadPosts(); // sync with backend
+        // let polling / loadPosts handle any further backend sync
       } catch(e) {
         console.log("%cvoid swallowed vote — retrying", "color:#ff00cc");
-        setTimeout(() => loadPosts(), 800); // retry once
+        setTimeout(() => loadPosts(), 800);
       } finally {
         setTimeout(() => {
           delete voteDebounce[postId];
           scoreEl.classList.remove('vote-score-flash');
+          renderFeed(); // force re-sort with new top-voted
         }, 600);
       }
     }
