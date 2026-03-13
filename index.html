@@ -212,16 +212,16 @@
     </div>
   </div>
 
-  <!-- Image/Media Modal -->
+  <!-- Media Modal (now matches other modals exactly + perfect snap) -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
-    <div class="card rounded-3xl w-full max-w-[95vw] max-h-[94vh] mx-4 flex flex-col">
+    <div class="card rounded-3xl w-full max-w-[95vw] max-h-[94vh] mx-4 flex flex-col overflow-hidden">
       <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between shrink-0">
         <div class="neon-pink font-bold text-lg">VOID VIEW</div>
         <button onclick="hideImageModal();event.stopImmediatePropagation()" class="text-3xl neon-cyan">X</button>
       </div>
-      <div class="flex-1 flex items-center justify-center p-8 bg-[#0a001f] overflow-hidden" onclick="event.stopImmediatePropagation()">
-        <img id="modalImage" src="" class="max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
+      <div id="mediaContainer" class="flex-1 flex items-center justify-center bg-[#0a001f] overflow-hidden relative" onclick="event.stopImmediatePropagation()">
+        <img id="modalImage" src="" class="hidden max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
         <video id="modalVideo" class="hidden max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" controls autoplay loop></video>
         <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" sandbox="allow-scripts allow-same-origin allow-popups" allowfullscreen></iframe>
       </div>
@@ -622,13 +622,18 @@
 
     function showImageModal(src) {
       const modal = document.getElementById('imageModal');
+      const container = document.getElementById('mediaContainer');
       const imgEl = document.getElementById('modalImage');
       const videoEl = document.getElementById('modalVideo');
       const iframeEl = document.getElementById('modalIframe');
 
+      // reset everything to prevent size bleed
       imgEl.classList.add('hidden');
       videoEl.classList.add('hidden');
       iframeEl.classList.add('hidden');
+      imgEl.src = '';
+      videoEl.src = '';
+      iframeEl.src = '';
 
       modal.classList.remove('hidden');
 
@@ -642,18 +647,28 @@
       } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html') || lowerSrc.includes('game.html')) {
         iframeEl.src = src;
         iframeEl.classList.remove('hidden');
+        // perfect snap to modal interior
         setTimeout(() => {
-          const fullscreenTap = () => {
+          iframeEl.style.width = '100%';
+          iframeEl.style.height = '100%';
+          const tapToFullscreen = () => {
             if (iframeEl.requestFullscreen) iframeEl.requestFullscreen();
             else if (iframeEl.webkitRequestFullscreen) iframeEl.webkitRequestFullscreen();
             else if (iframeEl.msRequestFullscreen) iframeEl.msRequestFullscreen();
           };
-          iframeEl.addEventListener('click', fullscreenTap, {once: true});
-          modal.querySelector('.flex-1').addEventListener('click', fullscreenTap, {once: true});
-        }, 300);
+          iframeEl.addEventListener('click', tapToFullscreen, {once: true});
+          container.addEventListener('click', tapToFullscreen, {once: true});
+        }, 30);
       } else {
         imgEl.src = '';
-        setTimeout(() => { imgEl.src = src; }, 10);
+        setTimeout(() => {
+          imgEl.src = src;
+          imgEl.style.maxWidth = '100%';
+          imgEl.style.maxHeight = '100%';
+          imgEl.style.width = 'auto';
+          imgEl.style.height = 'auto';
+          imgEl.style.objectFit = 'contain';
+        }, 10);
         imgEl.classList.remove('hidden');
       }
     }
