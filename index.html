@@ -187,7 +187,7 @@
         <input id="screamName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none">
       </div>
       <textarea id="screamText" class="w-full h-36 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-5 text-lg neon-cyan placeholder-zinc-500 focus:outline-none" placeholder="let it all out into the void..."></textarea>
-      <input id="imgUrl" type="text" placeholder="image link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
+      <input id="imgUrl" type="text" placeholder="image / gif / video / html game link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
       <div class="flex gap-4 mt-8">
         <button onclick="hideScreamModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">NEVERMIND</button>
         <button onclick="screamNow()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl shadow-[0_0_40px_#ff00cc]">SCREAM INTO VOID</button>
@@ -212,7 +212,7 @@
     </div>
   </div>
 
-  <!-- Image Modal -->
+  <!-- Image/Media Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
     <div class="card rounded-3xl w-full max-w-[95vw] max-h-[94vh] mx-4 flex flex-col">
@@ -642,28 +642,22 @@
       } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html') || lowerSrc.includes('game.html')) {
         iframeEl.src = src;
         iframeEl.classList.remove('hidden');
-        iframeEl.style.cursor = 'pointer';
-        // ENHANCED FOR 1-FILE HTML 3D GAME: tap anywhere in the modal area to go fullscreen
         setTimeout(() => {
-          const tapToFullscreen = () => {
-            if (iframeEl.requestFullscreen) {
-              iframeEl.requestFullscreen();
-            } else if (iframeEl.webkitRequestFullscreen) {
-              iframeEl.webkitRequestFullscreen();
-            } else if (iframeEl.msRequestFullscreen) {
-              iframeEl.msRequestFullscreen();
-            }
+          const fullscreenTap = () => {
+            if (iframeEl.requestFullscreen) iframeEl.requestFullscreen();
+            else if (iframeEl.webkitRequestFullscreen) iframeEl.webkitRequestFullscreen();
+            else if (iframeEl.msRequestFullscreen) iframeEl.msRequestFullscreen();
           };
-          // one-time tap handler on the iframe itself
-          iframeEl.addEventListener('click', tapToFullscreen, {once: true});
-          // fallback tap on the whole content area for mobile
-          modal.querySelector('.flex-1').addEventListener('click', tapToFullscreen, {once: true});
-        }, 800);
+          iframeEl.addEventListener('click', fullscreenTap, {once: true});
+          modal.querySelector('.flex-1').addEventListener('click', fullscreenTap, {once: true});
+        }, 300);
       } else {
-        imgEl.src = src;
+        imgEl.src = '';
+        setTimeout(() => { imgEl.src = src; }, 10);
         imgEl.classList.remove('hidden');
       }
     }
+
     function hideImageModal() {
       const modal = document.getElementById('imageModal');
       const imgEl = document.getElementById('modalImage');
