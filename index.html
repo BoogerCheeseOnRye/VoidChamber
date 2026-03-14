@@ -42,49 +42,25 @@
     .post { transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); position: relative; }
     .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; }
     .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
-    
-    /* CLASSIC FLAVOR TEXT FOOTER – restored from a few commits back */
-    .flavor-text {
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.4);
-      text-align: center;
-      padding: 0.5rem 1rem;
-      background: rgba(0,0,0,0.3);
-      border-top: 1px solid #ff00cc33;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 50;
-      pointer-events: none;
-      display: block;
-    }
-    
+    .flavor-text { font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; padding: 0.5rem 1rem; background: rgba(0,0,0,0.3); border-top: 1px solid #ff00cc33; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; pointer-events: none; display: block; }
     .image-wrapper { border-radius: 24px; overflow: hidden; border: 3px solid #00ffff66; box-shadow: 0 0 15px #00ffff44; margin: 0.75rem 0; position: relative; }
     .post-image { width: 100%; max-height: 260px; object-fit: contain; display: block; }
     .play-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: #fff; text-shadow: 0 0 20px #ff00cc; pointer-events: none; opacity: 0.9; }
-    
-    /* CLASSIC AVATAR PICKER – restored from a few commits back (large neon grid) */
-    .avatar-option {
-      width: 72px; height: 72px;
-      border-radius: 9999px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 32px;
-      transition: all 0.2s;
-      box-shadow: 0 0 16px currentColor;
-      cursor: pointer;
-    }
-    .avatar-option:hover, .avatar-option.selected {
-      transform: scale(1.22);
-      box-shadow: 0 0 40px currentColor;
-    }
-    
     .timestamp { font-size: 11px; color: #00ffff; text-shadow: 0 0 8px #00ffff; opacity: 0.9; font-family: monospace; }
     .vote-overlay { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 9999px; z-index: 10; }
     .neon-chevron { font-size: 18px; cursor: pointer; transition: all 0.2s; }
     .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
+
+    /* CUSTOM AVATAR CREATOR MODAL – new from this change only */
+    #avatarCreatorModal .preview-container {
+      width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border: 4px solid #00ffff; border-radius: 9999px; overflow: hidden;
+    }
+    .avatar-layer {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: transform 0.1s;
+    }
+    #layerControls input[type="range"] { accent-color: #ff00cc; }
 
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
@@ -127,20 +103,38 @@
     </div>
   </div>
 
-  <!-- IDENTITY MODAL – avatars restored to classic large neon grid from a few commits back -->
-  <div id="avatarModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
-    <div class="card rounded-3xl p-6 w-full max-w-lg mx-4">
-      <h3 class="neon-lime text-xl font-black tracking-widest text-center mb-1">CHOOSE YOUR IDENTITY</h3>
-      <p class="neon-lime text-sm tracking-widest text-center mb-6">(the void knows you have several)</p>
-      <div class="mb-6">
-        <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
-        <input id="avatarName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none" placeholder="screamer_666">
+  <!-- CUSTOM AVATAR CREATOR MODAL – new character creator (only change applied) -->
+  <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
+    <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
+      <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
+      
+      <!-- LIVE PREVIEW -->
+      <div id="avatarPreview" class="preview-container mb-6 mx-auto relative" style="box-shadow: 0 0 30px #00ffff;"></div>
+      
+      <!-- BASE SHAPE (5 locked options) -->
+      <div class="mb-4">
+        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE (LOCKED TO 5)</div>
+        <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
       </div>
-      <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">PICK YOUR AVATAR</label>
-      <div id="avatarPickerBig" class="grid grid-cols-4 gap-6 mb-8"></div>
+      
+      <!-- LAYER CONTROLS -->
+      <div class="flex-1 overflow-y-auto mb-4">
+        <div class="flex justify-between items-center mb-3">
+          <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
+          <button onclick="addNewLayer()" class="px-4 py-1 bg-[#ff00cc] text-[#0a001f] font-bold text-xs rounded-xl">+ ADD LAYER</button>
+        </div>
+        <div id="layerList" class="space-y-3"></div>
+      </div>
+      
+      <!-- ICON LIBRARY -->
+      <div class="mb-4">
+        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">PICK ICON (40+ ROYALTY-FREE FA)</div>
+        <div id="iconLibrary" class="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-[#0f0022] rounded-2xl"></div>
+      </div>
+      
       <div class="flex gap-4">
-        <button onclick="hideAvatarModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">BACK</button>
-        <button onclick="finishOnboarding()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SURE ABOUT THAT?</button>
+        <button onclick="hideAvatarCreatorModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">CANCEL</button>
+        <button onclick="saveCustomAvatar()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">FORGE AVATAR</button>
       </div>
     </div>
   </div>
@@ -215,7 +209,6 @@
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <!-- FLAVOR TEXT FOOTER – restored to classic fixed styling from a few commits back -->
     <div class="flavor-text">the void forgets everything • scroll down for lower ranked screams</div>
   </div>
 
@@ -223,7 +216,7 @@
     let posts = [];
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
-    let selectedAvatar = null;
+    let selectedAvatar = null; // now complex object {baseShape, layers: [{icon, color, rotate, scale, gradient}]}
     let pollRate = 6000;
     let pollTimer = null;
     let previousPostCount = 0;
@@ -237,15 +230,23 @@
     let displayedComments = 0;
 
     const MAX_POSTS = 100;
-    const avatarOptions = [
-      {color: '#ff00cc', icon: 'fa-skull'},
-      {color: '#00ffff', icon: 'fa-fire'},
-      {color: '#ccff00', icon: 'fa-ghost'},
-      {color: '#ff0088', icon: 'fa-star'},
-      {color: '#00ff88', icon: 'fa-bolt'},
-      {color: '#8800ff', icon: 'fa-dragon'},
-      {color: '#ff8800', icon: 'fa-eye'},
-      {color: '#00ccff', icon: 'fa-crown'}
+    
+    // 5 locked base shapes
+    const baseShapes = [
+      {id: 0, name: "CIRCLE", icon: "fa-circle"},
+      {id: 1, name: "HEX", icon: "fa-hexagon"},
+      {id: 2, name: "SKULL", icon: "fa-skull"},
+      {id: 3, name: "EYE", icon: "fa-eye"},
+      {id: 4, name: "FRAME", icon: "fa-square"}
+    ];
+
+    // 40+ royalty-free FA icons for layering (cyberpunk/abyss theme)
+    const iconLibrary = [
+      'fa-skull','fa-fire','fa-bolt','fa-eye','fa-dragon','fa-ghost','fa-crown','fa-spider',
+      'fa-dice','fa-biohazard','fa-radiation','fa-virus','fa-mask','fa-swords','fa-shield','fa-crosshairs',
+      'fa-rocket','fa-satellite','fa-robot','fa-microchip','fa-brain','fa-heart-pulse','fa-skull-crossbones',
+      'fa-chess-knight','fa-dungeon','fa-gem','fa-scroll','fa-spider','fa-bug','fa-bacteria','fa-atom',
+      'fa-meteor','fa-comet','fa-moon','fa-star','fa-solar-panel','fa-screwdriver','fa-wrench','fa-hammer'
     ];
 
     function isYouTube(url) { return url && (url.includes('youtube.com') || url.includes('youtu.be')); }
@@ -361,14 +362,24 @@
     }
 
     function renderSinglePost(p) {
-      const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
+      const av = p.avatar || {baseShape: 0, layers: []};
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
+      
+      let avatarHTML = '';
+      if (av.layers && av.layers.length) {
+        avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background: #0a001f; border-radius: 9999px; overflow: hidden;">`;
+        av.layers.forEach(layer => {
+          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color}; transform: translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${layer.scale}); font-size: 80px;"></i>`;
+        });
+        avatarHTML += `</div>`;
+      } else {
+        avatarHTML = `<div style="background:#ff00cc" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_#ff00cc]"><i class="fa-solid fa-skull"></i></div>`;
+      }
+
       return `
         <div class="card rounded-3xl p-6 post overflow-hidden" data-id="${p.id}">
           <div class="flex items-center gap-4 mb-4">
-            <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
-              <i class="fa-solid ${av.icon}"></i>
-            </div>
+            ${avatarHTML}
             <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
           <div class="scream-text">${escapeHtml(p.content)}</div>
@@ -433,124 +444,146 @@
     }
     function finishVibeCheck() {
       document.getElementById('quizModal').classList.add('hidden');
-      showAvatarModal();
+      showAvatarCreatorModal();
     }
-    function showAvatarModal() {
-      document.getElementById('avatarModal').classList.remove('hidden');
-      const picker = document.getElementById('avatarPickerBig');
-      picker.innerHTML = avatarOptions.map((av, i) => `
-        <div onclick="selectAvatarFromModal(${i});event.stopImmediatePropagation()" style="background:${av.color}" class="avatar-option ${i===0?'selected':''}">
-          <i class="fa-solid ${av.icon}"></i>
+
+    // ==================== CUSTOM AVATAR CREATOR LOGIC ====================
+    let currentLayers = [];
+    let currentBaseShape = 0;
+    let selectedLayerIndex = -1;
+
+    function showAvatarCreatorModal() {
+      document.getElementById('avatarCreatorModal').classList.remove('hidden');
+      currentLayers = [];
+      currentBaseShape = 0;
+      selectedLayerIndex = -1;
+      renderBaseShapePicker();
+      renderLayerList();
+      renderIconLibrary();
+      updateLivePreview();
+    }
+
+    function hideAvatarCreatorModal() {
+      document.getElementById('avatarCreatorModal').classList.add('hidden');
+    }
+
+    function renderBaseShapePicker() {
+      const container = document.getElementById('baseShapePicker');
+      container.innerHTML = baseShapes.map((shape, i) => `
+        <div onclick="selectBaseShape(${i});event.stopImmediatePropagation()" class="text-4xl cursor-pointer ${i===currentBaseShape ? 'neon-lime scale-125' : 'neon-cyan'}">
+          <i class="fa-solid ${shape.icon}"></i>
         </div>
       `).join('');
-      document.getElementById('avatarName').value = lastScreamer || "screamer_666";
-      selectedAvatar = avatarOptions[0];
     }
-    function hideAvatarModal() { document.getElementById('avatarModal').classList.add('hidden'); }
-    function selectAvatarFromModal(idx) {
-      selectedAvatar = avatarOptions[idx];
-      document.querySelectorAll('#avatarPickerBig .avatar-option').forEach((el, i) => el.classList.toggle('selected', i===idx));
+
+    function selectBaseShape(i) {
+      currentBaseShape = i;
+      renderBaseShapePicker();
+      updateLivePreview();
     }
-    async function finishOnboarding() {
-      const nameInput = document.getElementById('avatarName').value.trim() || "anonymous";
-      lastScreamer = nameInput;
-      localStorage.setItem('lastScreamer', lastScreamer);
-      localStorage.setItem('vcOnboardingComplete', 'true');
-      hideAvatarModal();
+
+    function renderIconLibrary() {
+      const container = document.getElementById('iconLibrary');
+      container.innerHTML = iconLibrary.map(icon => `
+        <div onclick="addIconToLayer('${icon}');event.stopImmediatePropagation()" class="text-3xl neon-pink cursor-pointer hover:scale-125 transition">
+          <i class="fa-solid ${icon}"></i>
+        </div>
+      `).join('');
+    }
+
+    function addIconToLayer(icon) {
+      if (currentLayers.length >= 5) return alert("MAX 5 LAYERS");
+      currentLayers.push({
+        icon: icon,
+        color: '#ff00cc',
+        rotate: 0,
+        scale: 1.0,
+        gradient: false
+      });
+      selectedLayerIndex = currentLayers.length - 1;
+      renderLayerList();
+      updateLivePreview();
+    }
+
+    function renderLayerList() {
+      const container = document.getElementById('layerList');
+      container.innerHTML = currentLayers.map((layer, i) => `
+        <div onclick="selectLayer(${i});event.stopImmediatePropagation()" class="flex items-center gap-3 bg-[#0f0022] p-3 rounded-2xl cursor-pointer ${i===selectedLayerIndex ? 'border-2 border-[#ccff00]' : ''}">
+          <i class="fa-solid ${layer.icon} text-3xl" style="color:${layer.color}"></i>
+          <div class="flex-1">
+            <input type="color" value="${layer.color}" onchange="updateLayerColor(${i}, this.value)" class="w-10 h-6 bg-transparent border-0">
+            <input type="range" min="0.5" max="2" step="0.05" value="${layer.scale}" onchange="updateLayerScale(${i}, this.value)" class="w-20 accent-[#ff00cc]">
+            <input type="range" min="-180" max="180" step="1" value="${layer.rotate}" onchange="updateLayerRotate(${i}, this.value)" class="w-20 accent-[#ff00cc]">
+          </div>
+          <button onclick="removeLayer(${i});event.stopImmediatePropagation()" class="text-red-500">×</button>
+        </div>
+      `).join('');
+    }
+
+    function selectLayer(i) {
+      selectedLayerIndex = i;
+      renderLayerList();
+    }
+
+    function updateLayerColor(i, color) {
+      currentLayers[i].color = color;
+      updateLivePreview();
+    }
+
+    function updateLayerScale(i, scale) {
+      currentLayers[i].scale = parseFloat(scale);
+      updateLivePreview();
+    }
+
+    function updateLayerRotate(i, rotate) {
+      currentLayers[i].rotate = parseFloat(rotate);
+      updateLivePreview();
+    }
+
+    function removeLayer(i) {
+      currentLayers.splice(i, 1);
+      if (selectedLayerIndex >= currentLayers.length) selectedLayerIndex = currentLayers.length - 1;
+      renderLayerList();
+      updateLivePreview();
+    }
+
+    function addNewLayer() {
+      if (currentLayers.length >= 5) return;
+      currentLayers.push({
+        icon: 'fa-skull',
+        color: '#ff00cc',
+        rotate: 0,
+        scale: 1.0,
+        gradient: false
+      });
+      selectedLayerIndex = currentLayers.length - 1;
+      renderLayerList();
+      updateLivePreview();
+    }
+
+    function updateLivePreview() {
+      const preview = document.getElementById('avatarPreview');
+      let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
+      
+      // base shape (simple tint)
+      const baseIcon = baseShapes[currentBaseShape].icon;
+      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:#00ffff"></i>`;
+      
+      currentLayers.forEach(layer => {
+        html += `<i class="fa-solid ${layer.icon} absolute" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;"></i>`;
+      });
+      html += `</div>`;
+      preview.innerHTML = html;
+    }
+
+    function saveCustomAvatar() {
+      selectedAvatar = {
+        baseShape: currentBaseShape,
+        layers: [...currentLayers]
+      };
+      hideAvatarCreatorModal();
       document.getElementById('mainContent').style.display = 'flex';
       loadPosts();
-    }
-
-    function showScreamModal() {
-      document.getElementById('screamModal').classList.remove('hidden');
-      document.getElementById('screamName').value = lastScreamer || "";
-      document.getElementById('screamText').value = '';
-      document.getElementById('imgUrl').value = '';
-    }
-    function hideScreamModal() { document.getElementById('screamModal').classList.add('hidden'); }
-    async function screamNow() {
-      const name = document.getElementById('screamName').value.trim() || "anonymous";
-      const content = document.getElementById('screamText').value.trim();
-      if (!content) return alert("You must scream something!");
-      const id = Date.now();
-      const newPost = {
-        type: "post",
-        id: id,
-        name: name,
-        content: content,
-        image: document.getElementById('imgUrl').value.trim() || null,
-        avatar: selectedAvatar || avatarOptions[0],
-        comments: []
-      };
-      try {
-        await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
-      } catch(e) {}
-      hideScreamModal();
-      lastScreamer = name;
-      localStorage.setItem('lastScreamer', name);
-      loadPosts();
-    }
-
-    function appendCommentsBatch(batchSize) {
-      const list = document.getElementById('commentsList');
-      const start = displayedComments;
-      const end = Math.min(start + batchSize, currentComments.length);
-      for (let i = start; i < end; i++) {
-        const c = currentComments[i];
-        list.innerHTML += `
-          <div class="bg-[#0f0022] rounded-2xl p-4">
-            <div class="flex items-center gap-3 mb-2">
-              <span class="neon-pink font-bold">${escapeHtml(c.name)}</span>
-            </div>
-            <div class="neon-cyan">${escapeHtml(c.content)}</div>
-          </div>`;
-      }
-      displayedComments = end;
-    }
-
-    function openCommentsModal(id) {
-      currentPostId = id;
-      const post = posts.find(p => p.id === id);
-      if (!post) return;
-
-      document.getElementById('commentsModal').classList.remove('hidden');
-      document.getElementById('modalPostHeader').innerHTML = `${escapeHtml(post.name)}'s SCREAM`;
-      document.getElementById('commentsMediaContainer').innerHTML = post.image ? renderEmbeddedMedia(post.image) : '';
-      
-      const effectiveScore = voteScores[post.id] !== undefined ? voteScores[post.id] : (post.voteScore || 0);
-      document.getElementById('modalVoteScore').textContent = effectiveScore;
-      document.getElementById('modalTimestamp').innerHTML = formatPSTTimestamp(post.id);
-      document.getElementById('modalCommentCount').innerHTML = `SCREECHES <span class="neon-lime">(${post.comments ? post.comments.length : 0})</span>`;
-
-      currentComments = post.comments || [];
-      displayedComments = 0;
-      const list = document.getElementById('commentsList');
-      list.innerHTML = '';
-      appendCommentsBatch(10);
-
-      list.onscroll = () => {
-        if (list.scrollTop + list.clientHeight >= list.scrollHeight - 150 && displayedComments < currentComments.length) {
-          appendCommentsBatch(8);
-        }
-      };
-    }
-
-    function hideCommentsModal() {
-      document.getElementById('commentsModal').classList.add('hidden');
-      currentPostId = null;
-      document.getElementById('commentsMediaContainer').innerHTML = '';
-      const list = document.getElementById('commentsList');
-      if (list) list.onscroll = null;
-    }
-
-    async function submitModalComment() {
-      const text = document.getElementById('modalCommentText').value.trim();
-      if (!text || !currentPostId) return;
-      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "comment", postId: currentPostId, name: lastScreamer || "anonymous", content: text})})
-        .catch(() => console.log("%cvoid swallowed screech", "color:#ff00cc"));
-      document.getElementById('modalCommentText').value = '';
-      await loadPosts();
-      openCommentsModal(currentPostId);
     }
 
     function showImageModal(src) {
@@ -608,7 +641,6 @@
         document.getElementById('ageWarningModal').classList.remove('hidden');
       } else {
         document.getElementById('mainContent').style.display = 'flex';
-        selectedAvatar = avatarOptions[0];
         loadPosts();
         setInterval(loadPosts, pollRate);
       }
