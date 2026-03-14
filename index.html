@@ -416,7 +416,7 @@
             ${avatarHTML}
             <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
-          <div class="scream-text text-lg leading-tight neon-cyan">${escapeHtml(p.content || '')}</div>
+          <div class="scream-text text-lg leading-tight neon-cyan whitespace-pre-wrap">${escapeHtml(p.content || '')}</div>
           ${p.image ? getMediaPreviewHTML(p.image, p.id) : ''}
           
           <div class="vote-overlay">
@@ -768,6 +768,13 @@
         avatar: userAvatar || FALLBACK_AVATAR
       };
 
+      // INSTANT LOCAL ADD FOR IMMEDIATE VISIBILITY (pre-avatar-creator behavior)
+      posts.unshift(newPost);
+      sortedFeedPosts.unshift(newPost);
+      const container = document.getElementById('feed');
+      container.innerHTML = renderSinglePost(newPost) + container.innerHTML;
+      displayedFeedPosts++;
+
       try {
         await fetch('save.php', {
           method: 'POST',
@@ -779,7 +786,6 @@
       hideScreamModal();
       document.getElementById('screamText').value = '';
       document.getElementById('imgUrl').value = '';
-      loadPosts();
     }
 
     function openCommentsModal(postId) {
