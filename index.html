@@ -2,20 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VOIDSCREAM</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff00cc">
   <link rel="apple-touch-icon" href="icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     :root { --abyss: #0a001f; }
-    html, body, #feed, #avatarCreatorModal * { scrollbar-width: none; -ms-overflow-style: none; }
-    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar, #avatarCreatorModal::-webkit-scrollbar { display: none; }
+    html, body, #feed {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar {
+      display: none;
+    }
 
-    html { display: flex; justify-content: center; background: var(--abyss); }
     body { 
       background: var(--abyss); 
       font-family: system-ui, sans-serif; 
@@ -23,57 +26,188 @@
       overflow: hidden; 
       display: flex; 
       flex-direction: column; 
-      margin: 0 auto;
-      max-width: 480px;
-      width: 100%;
+      margin: 0; 
       position: relative;
     }
     
-    #abyss-fall { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
-    .falling { position: absolute; color: #ff00cc; font-size: 22px; opacity: 0.12; text-shadow: 0 0 12px #ff00cc, 0 0 25px #00ffff; animation: abyssFall linear forwards; user-select: none; }
-    @keyframes abyssFall { to { transform: translateY(120vh) rotate(720deg); } }
+    #abyss-fall {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .falling {
+      position: absolute;
+      color: #ff00cc;
+      font-size: 22px;
+      opacity: 0.12;
+      text-shadow: 0 0 12px #ff00cc, 0 0 25px #00ffff;
+      animation: abyssFall linear forwards;
+      user-select: none;
+    }
+    
+    @keyframes abyssFall {
+      to {
+        transform: translateY(120vh) rotate(720deg);
+      }
+    }
 
     .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
     .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
     .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
    
-    .cyber-header { text-align: center; padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem; border-bottom: 2px solid #00ffff; box-shadow: 0 0 15px #00ffff; background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent); flex-shrink: 0; z-index: 10; }
-    .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 10px #ff00cc88; transition: all 0.3s ease; position: relative; }
+    .cyber-header {
+      text-align: center;
+      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
+      border-bottom: 2px solid #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card {
+      background: #1a0033;
+      border: 2px solid #ff00cc88;
+      box-shadow: 0 0 10px #ff00cc88;
+      transition: all 0.3s ease;
+      position: relative;
+    }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
-    .post { transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); position: relative; }
-    .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; }
+    .post {
+      transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+      position: relative;
+    }
+    .void-scream-btn {
+      background: linear-gradient(45deg, #ff00cc, #00ffff);
+      padding: 1.2rem 3rem;
+      border-radius: 9999px;
+      position: fixed;
+      bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      box-shadow: 0 8px 25px rgba(255,0,204,0.5);
+      transition: all 0.2s;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
     .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
-    .flavor-text { font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; padding: 0.5rem 1rem; background: rgba(0,0,0,0.3); border-top: 1px solid #ff00cc33; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; pointer-events: none; display: block; }
-    .image-wrapper { border-radius: 24px; overflow: hidden; border: 3px solid #00ffff66; box-shadow: 0 0 15px #00ffff44; margin: 0.75rem 0; position: relative; }
-    .post-image { width: 100%; max-height: 260px; object-fit: contain; display: block; }
-    .play-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: #fff; text-shadow: 0 0 20px #ff00cc; pointer-events: none; opacity: 0.9; }
-    .timestamp { font-size: 11px; color: #00ffff; text-shadow: 0 0 8px #00ffff; opacity: 0.9; font-family: monospace; }
-    .vote-overlay { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 9999px; z-index: 10; }
-    .neon-chevron { font-size: 18px; cursor: pointer; transition: all 0.2s; }
+    .flavor-text {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 0.5rem 1rem;
+      flex-shrink: 0;
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid #ff00cc33;
+    }
+    .image-wrapper {
+      border-radius: 24px;
+      overflow: hidden;
+      border: 3px solid #00ffff66;
+      box-shadow: 0 0 15px #00ffff44;
+      margin: 0.75rem 0;
+      position: relative;
+    }
+    .post-image {
+      width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+      display: block;
+      cursor: pointer;
+    }
+    .play-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      color: #fff;
+      text-shadow: 0 0 20px #ff00cc;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+    .avatar-option {
+      width: 64px; height: 64px;
+      border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      transition: all 0.2s;
+      box-shadow: 0 0 16px currentColor;
+      cursor: pointer;
+    }
+    .avatar-option:hover, .avatar-option.selected {
+      transform: scale(1.18);
+      box-shadow: 0 0 32px currentColor;
+    }
+    .timestamp {
+      position: absolute;
+      bottom: 12px;
+      right: 18px;
+      font-size: 11px;
+      color: #00ffff;
+      text-shadow: 0 0 8px #00ffff;
+      opacity: 0.9;
+      font-family: monospace;
+    }
+    .vote-overlay {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      z-index: 10;
+    }
+    .neon-chevron {
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
     .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    #avatarCreatorModal .preview-container {
-      width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border-radius: 9999px; overflow: hidden; cursor: grab;
-      animation: avatarFloat 6s ease-in-out infinite;
+    /* REFINED MEDIA MODAL – full resolution, no sandbox conflicts */
+    #imageModal .card {
+      max-height: 96vh;
     }
-    .avatar-layer {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: all 0.1s linear; user-select: none;
-      animation: avatarBreathGlow 3s ease-in-out infinite alternate;
+    #mediaContainer {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a001f;
+      overflow: hidden;
+      position: relative;
     }
-    @keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    @keyframes avatarBreathGlow { 0% { text-shadow: 0 0 15px currentColor; } 100% { text-shadow: 0 0 35px currentColor; } }
-
-    #commentsModal .card { max-height: 94vh; }
-    #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
-    #commentsMediaContainer { padding: 1rem; background: #0a001f; border-bottom: 2px solid #ff00cc33; flex-shrink: 0; }
-    #commentsMediaContainer iframe, #commentsMediaContainer video, #commentsMediaContainer img { width: 80%; height: auto; max-height: 78vh; aspect-ratio: 16 / 9; margin: 0 auto; display: block; border: 4px solid #00ffff; border-radius: 16px; }
-    #commentsList { flex: 1; overflow-y: auto; padding: 1.25rem; background: #1a0033; }
+    #modalImage, #modalVideo, #modalIframe {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border: 4px solid #00ffff;
+      border-radius: 24px;
+    }
+    #modalVideo, #modalIframe {
+      width: 100% !important;
+      height: 100% !important;
+    }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
 
+  <!-- ABYSS FALL LAYER -->
   <div id="abyss-fall"></div>
 
   <!-- AGE WARNING MODAL -->
@@ -104,88 +238,62 @@
     </div>
   </div>
 
-  <!-- AVATAR DOWNLOAD MODAL -->
-  <div id="avatarDownloadModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[210]">
-    <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
-      <div class="text-6xl mb-6 neon-pink">☠️</div>
-      <h2 class="neon-pink text-4xl font-black tracking-[-3px]">THE VOID JUST SPAT OUT YOUR FACE</h2>
-      <p class="neon-cyan text-lg mt-6 leading-tight">Here's your temporary scream shadow.<br>Drop this PNG anywhere the abyss can find it next time you scream.<br><br>
-      <span class="text-[#ff0088]">We didn't ask the feds. We didn't ask your mom. We didn't ask anyone.</span><br>
-      Your face stays between you and the void. Anonymity is sacred here — the abyss forgets everything, including your real name.</p>
-      <div class="mt-8 flex gap-4">
-        <button onclick="hideAvatarDownloadModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">I UNDERSTAND — THE VOID SEES NOTHING</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CUSTOM AVATAR CREATOR MODAL -->
-  <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
-    <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
-      <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
-      <div id="avatarPreview" class="preview-container mb-6 mx-auto relative"></div>
-      <div class="absolute top-6 left-6 z-30">
-        <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
-      </div>
-      <div onclick="cycleGlowIntensity();event.stopImmediatePropagation()" class="absolute top-6 right-6 z-30 cursor-pointer text-4xl neon-cyan">
-        <i class="fa-solid fa-atom"></i>
-      </div>
-      <div class="mb-6">
-        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE</div>
-        <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
-      </div>
-      <div class="mb-4">
-        <div class="flex justify-between items-center">
-          <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
-          <button onclick="addNewLayer()" class="px-5 py-2 bg-[#ff00cc] text-[#0a001f] font-bold text-xs rounded-xl">+ ADD LAYER</button>
-        </div>
-      </div>
-      <div class="mb-4">
-        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">PICK ICON (FIRST 5 UNLOCKED)</div>
-        <div id="iconLibrary" class="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-[#0f0022] rounded-2xl"></div>
-      </div>
-      <div class="flex gap-4 mt-auto">
-        <button onclick="hideAvatarCreatorModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">CANCEL</button>
-        <button onclick="downloadAvatar()" class="flex-1 py-6 bg-[#00ffff] text-[#0a001f] font-black text-lg rounded-3xl">DOWNLOAD SHADOW</button>
-        <button onclick="saveCustomAvatar()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">FORGE AVATAR</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCREAM MODAL -->
-  <div id="screamModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
+  <!-- IDENTITY MODAL -->
+  <div id="avatarModal" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4">
-      <div class="mb-5">
+      <h3 class="neon-lime text-xl font-black tracking-widest text-center mb-1">CHOOSE YOUR IDENTITY</h3>
+      <p class="neon-lime text-sm tracking-widest text-center mb-6">(the void knows you have several)</p>
+      <div class="mb-6">
         <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
-        <input id="screamName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none">
+        <input id="avatarName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none" placeholder="screamer_666">
       </div>
-      <textarea id="screamText" class="w-full h-36 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-5 text-lg neon-cyan placeholder-zinc-500 focus:outline-none" placeholder="let it all out into the void..."></textarea>
-      <input id="imgUrl" type="text" placeholder="image / gif / video / youtube / vimeo / google drive / AAA Gaming link (optional)" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
-      <div class="flex gap-4 mt-8">
-        <button onclick="hideScreamModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">NEVERMIND</button>
-        <button onclick="screamNow()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl shadow-[0_0_40px_#ff00cc]">SCREAM INTO VOID</button>
+      <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">PICK YOUR AVATAR</label>
+      <div id="avatarPickerBig" class="grid grid-cols-4 gap-4 mb-8"></div>
+      <div class="flex gap-4">
+        <button onclick="hideAvatarModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">BACK</button>
+        <button onclick="finishOnboarding()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SURE ABOUT THAT?</button>
       </div>
     </div>
   </div>
+<!-- SCREAM MODAL -->
+<div id="screamModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
+  <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"> <!-- ← added max height + scroll for the whole modal -->
+    
+    <!-- NEW: Infinite-scroll feed of previous screams -->
+    <div class="mb-6">
+      <label class="neon-lime text-sm block mb-3 font-medium tracking-widest">RECENT SCREAMS IN THE VOID</label>
+      <div id="screamsFeed" class="max-h-64 overflow-y-auto pr-2 space-y-6 scrollbar-thin scrollbar-thumb-[#00ffff]">
+        <div id="feedItems"></div> <!-- ← JS will fill this -->
+        
+        <!-- Sentinel (the magic element that triggers loading more) -->
+        <div id="loadSentinel" class="h-10 flex items-center justify-center"></div>
+      </div>
+    </div>
 
-  <!-- COMMENTS MODAL -->
+    <!-- Your original form (unchanged) -->
+    <div class="mb-5">
+      <label class="neon-lime text-sm block mb-2 font-medium tracking-widest">YOUR NAME</label>
+      <input id="screamName" type="text" class="w-full bg-[#0f0022] border-2 border-[#ccff00] rounded-3xl p-4 text-xl neon-lime focus:outline-none">
+    </div>
+    <textarea id="screamText" class="w-full h-36 bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-5 text-lg neon-cyan placeholder-zinc-500 focus:outline-none" placeholder="let it all out into the void..."></textarea>
+    <input id="imgUrl" type="text" placeholder="Link Previews only" class="mt-5 w-full bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-4 neon-pink text-sm">
+    
+    <div class="flex gap-4 mt-8">
+      <button onclick="hideScreamModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg hover:border-zinc-500 transition">NEVERMIND</button>
+      <button onclick="screamNow()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl shadow-[0_0_40px_#ff00cc]">SCREAM INTO VOID</button>
+    </div>
+  </div>
+</div>
+  <!-- Comments Modal -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
-    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
-      <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
+    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
+      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
         <div id="modalPostHeader" class="neon-pink font-bold text-lg"></div>
         <button onclick="hideCommentsModal()" class="text-3xl neon-cyan">X</button>
       </div>
-      <div id="commentsMediaContainer" class="p-5 bg-[#0a001f] flex-shrink-0"></div>
-      <div class="px-5 py-3 border-b border-[#ff00cc]/30 bg-[#1a0033] flex items-center justify-between">
-        <span id="modalCommentCount" class="text-sm neon-cyan">SCREECHES <span class="neon-lime"></span></span>
-      </div>
-      <div class="px-5 py-2 bg-[#1a0033] flex items-center justify-center gap-6">
-        <div onclick="castVoteFromModal(1)" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00] cursor-pointer"></div>
-        <span id="modalVoteScore" class="neon-lime font-mono text-sm"></span>
-        <div onclick="castVoteFromModal(-1)" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] cursor-pointer"></div>
-      </div>
-      <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6 bg-[#1a0033]"></div>
+      <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
       <div class="p-5 border-t border-[#ff00cc]/30 bg-[#1a0033]">
-        <div class="flex gap-3">
+        <div id="commentInputArea" class="flex gap-3">
           <input id="modalCommentText" type="text" placeholder="Write a screech or reply..." class="flex-1 bg-[#0f0022] border border-[#ccff00] rounded-3xl px-5 py-3 text-sm neon-lime focus:outline-none">
           <button onclick="submitModalComment()" class="bg-[#ff00cc] hover:bg-[#ff0088] px-7 rounded-3xl font-bold">SCREECH</button>
         </div>
@@ -193,7 +301,7 @@
     </div>
   </div>
 
-  <!-- IMAGE MODAL -->
+  <!-- Media Modal -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
     <div class="card rounded-3xl w-full max-w-[95vw] max-h-[96vh] mx-4 flex flex-col overflow-hidden">
@@ -203,90 +311,104 @@
       </div>
       <div id="mediaContainer" class="flex-1 flex items-center justify-center bg-[#0a001f] overflow-hidden relative p-4" onclick="event.stopImmediatePropagation()">
         <img id="modalImage" src="" class="hidden max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
+        <video id="modalVideo" class="hidden max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" controls autoplay loop></video>
+        <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>
       </div>
     </div>
   </div>
 
   <!-- MAIN CONTENT -->
-  <div id="mainContent" class="hidden flex-1 flex flex-col min-h-0">
+  <div id="mainContent" class="hidden flex-1 flex flex-col">
     <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
       <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
     </div>
     
-    <div id="feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 pb-32"></div>
+    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
 
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything • scroll down for lower ranked screams</div>
+    <div class="flavor-text">the void forgets everything • scroll up to feel the fall</div>
   </div>
 
 <script>
     let posts = [];
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
-    let userAvatar = null;
+    let selectedAvatar = null;
+    let pollRate = 6000;
+    let pollTimer = null;
+    let previousPostCount = 0;
     let voteDebounce = {};
     let voteScores = {}; 
 
-    let sortedFeedPosts = [];
-    let displayedFeedPosts = 0;
-
-    const baseShapes = [
-      {id: 0, name: "CIRCLE", icon: "fa-circle"},
-      {id: 1, name: "HEX", icon: "fa-hexagon"},
-      {id: 2, name: "SKULL", icon: "fa-skull"},
-      {id: 3, name: "EYE", icon: "fa-eye"},
-      {id: 4, name: "FRAME", icon: "fa-square"}
+    const MAX_POSTS = 100;
+    const avatarOptions = [
+      {color: '#ff00cc', icon: 'fa-skull'},
+      {color: '#00ffff', icon: 'fa-fire'},
+      {color: '#ccff00', icon: 'fa-ghost'},
+      {color: '#ff0088', icon: 'fa-star'},
+      {color: '#00ff88', icon: 'fa-bolt'},
+      {color: '#8800ff', icon: 'fa-dragon'},
+      {color: '#ff8800', icon: 'fa-eye'},
+      {color: '#00ccff', icon: 'fa-crown'}
     ];
 
-    const iconLibrary = [
-      'fa-skull','fa-fire','fa-bolt','fa-eye','fa-dragon','fa-ghost','fa-crown','fa-spider',
-      'fa-dice','fa-biohazard','fa-radiation','fa-virus','fa-mask','fa-swords','fa-shield','fa-crosshairs',
-      'fa-rocket','fa-satellite','fa-robot','fa-microchip','fa-brain','fa-heart-pulse','fa-skull-crossbones',
-      'fa-chess-knight','fa-dungeon','fa-gem','fa-scroll','fa-spider','fa-bug','fa-bacteria','fa-atom',
-      'fa-meteor','fa-comet','fa-moon','fa-star','fa-solar-panel','fa-screwdriver','fa-wrench','fa-hammer'
-    ];
-
-    const glowLevels = [0, 0.2, 0.69, 1, 4.2, 6.66];
-
-    const FALLBACK_AVATAR = {
-      baseShape: 2,
-      baseColor: '#ff0000',
-      layers: [{ icon: 'fa-knife', color: '#000000', rotate: 0, scale: 1.0, glow: 2, pulse: 0.8, offsetX: 0, offsetY: 0 }]
-    };
-
-    function isYouTube(url) { return url && (url.includes('youtube.com') || url.includes('youtu.be')); }
+    // VIDEO / EMBED HELPERS – YouTube + Google Drive + Vimeo + Direct Video + AAA Gaming
+    function isYouTube(url) {
+      return url && (url.includes('youtube.com') || url.includes('youtu.be'));
+    }
     function getYouTubeId(url) {
       if (!url) return '';
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = url.match(regExp);
       return (match && match[2].length === 11) ? match[2] : '';
     }
-    function getYouTubeThumb(url) { const id = getYouTubeId(url); return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : ''; }
-    function getYouTubeEmbed(url) { const id = getYouTubeId(url); return id ? `https://www.youtube.com/embed/${id}?autoplay=1&modestbranding=1&rel=0&quality=high` : url; }
+    function getYouTubeThumb(url) {
+      const id = getYouTubeId(url);
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+    }
+    function getYouTubeEmbed(url) {
+      const id = getYouTubeId(url);
+      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&modestbranding=1&rel=0&quality=high` : url;
+    }
 
-    function isVimeo(url) { return url && url.includes('vimeo.com'); }
-    function getVimeoEmbed(url) { const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i); return match && match[1] ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&byline=0&portrait=0&title=0` : url; }
+    function isVimeo(url) {
+      return url && url.includes('vimeo.com');
+    }
+    function getVimeoEmbed(url) {
+      const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+      return match && match[1] ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&byline=0&portrait=0&title=0` : url;
+    }
 
-    function isGoogleDriveVideo(url) { return url && url.includes('drive.google.com') && url.includes('/file/d/'); }
-    function getGoogleDriveEmbed(url) { const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/); return match && match[1] ? `https://drive.google.com/file/d/${match[1]}/preview` : url; }
+    function isGoogleDriveVideo(url) {
+      return url && url.includes('drive.google.com') && url.includes('/file/d/');
+    }
+    function getGoogleDriveEmbed(url) {
+      const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      return match && match[1] ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+    }
 
-    function isDirectVideo(url) { return url && /\.(mp4|webm|ogg|mov|avi)$/i.test(url); }
-    function isGameLink(url) { return url && url.includes('boogercheeseonrye.github.io/THE.END.OF.AAA.GAMING/game.html'); }
+    function isDirectVideo(url) {
+      return url && /\.(mp4|webm|ogg|mov|avi)$/i.test(url);
+    }
 
-    function getMediaPreviewHTML(url, postId) {
+    function isGameLink(url) {
+      return url && url.includes('boogercheeseonrye.github.io/THE.END.OF.AAA.GAMING/game.html');
+    }
+
+    function getMediaPreviewHTML(url) {
       if (isYouTube(url)) {
         const thumb = getYouTubeThumb(url);
-        return `<div class="image-wrapper relative" onclick="openCommentsModal(${postId});event.stopImmediatePropagation()">
-          <img src="${thumb}" class="post-image">
+        return `<div class="image-wrapper relative" onclick="showImageModal('${url}');event.stopImmediatePropagation()">
+          <img src="${thumb}" class="post-image" onerror="this.src='https://i.imgur.com/removed.png'">
           <div class="play-overlay">▶</div>
         </div>`;
       }
       if (isVimeo(url) || isGoogleDriveVideo(url) || isDirectVideo(url) || isGameLink(url)) {
-        return `<div class="image-wrapper relative" onclick="openCommentsModal(${postId});event.stopImmediatePropagation()">
+        return `<div class="image-wrapper relative" onclick="showImageModal('${url}');event.stopImmediatePropagation()">
           <div class="bg-[#1a0033] h-48 flex items-center justify-center text-6xl neon-cyan">▶</div>
           <div class="play-overlay">▶</div>
         </div>`;
@@ -294,27 +416,28 @@
       return `<div class="image-wrapper"><img src="${url}" class="post-image" onclick="showImageModal('${url}');event.stopImmediatePropagation()"></div>`;
     }
 
-    function renderEmbeddedMedia(src) {
-      if (!src) return '';
-      const lower = src.toLowerCase();
-      const ext = lower.split('.').pop();
-
-      if (['mp4','webm','ogg','mov'].includes(ext)) {
-        return `<video src="${src}" controls autoplay loop class="w-full rounded-3xl border-4 border-[#00ffff]"></video>`;
-      }
-      if (isYouTube(src)) return `<iframe src="${getYouTubeEmbed(src)}" allowfullscreen allow="autoplay" class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
-      if (isVimeo(src)) return `<iframe src="${getVimeoEmbed(src)}" allowfullscreen allow="autoplay" class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
-      if (isGoogleDriveVideo(src)) return `<iframe src="${getGoogleDriveEmbed(src)}" allowfullscreen allow="autoplay" class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
-      if (isGameLink(src)) {
-        let gameUrl = src + (src.includes('?') ? '&' : '?') + 'embed=true';
-        return `<iframe src="${gameUrl}" allowfullscreen allow="autoplay" style="width:80%;height:auto;aspect-ratio:16/9;max-height:78vh;margin:0 auto;display:block;border-radius:16px;border:4px solid #00ffff"></iframe>`;
-      }
-      if (ext === 'html' || lower.includes('.html')) return `<iframe src="${src}" allowfullscreen class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
-      return `<img src="${src}" class="max-w-full rounded-3xl border-4 border-[#00ffff]">`;
+    async function getPSTTimestamp() {
+      try {
+        const res = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Los_Angeles', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          return new Date(data.dateTime).getTime();
+        }
+      } catch(e) {}
+      try {
+        const res = await fetch('https://worldtimeapi.org/api/timezone/America/Los_Angeles', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          return data.unixtime * 1000;
+        }
+      } catch(e) {}
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      return utc - (8 * 3600000);
     }
 
     function formatPSTTimestamp(ts) {
-      const date = new Date(ts || Date.now());
+      const date = new Date(ts);
       const hour = String(date.getHours()).padStart(2, '0');
       const minute = String(date.getMinutes()).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -337,62 +460,68 @@
         const res = await fetch('save.php');
         if (!res.ok) throw new Error("void empty");
         posts = await res.json();
-
-        posts = posts.filter(p => {
-          const score = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
-          return score > -5;
-        });
-
-        let normalPosts = posts.filter(p => !p.pinned);
-        normalPosts.sort((a, b) => {
-          const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
-          const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
-          return scoreB - scoreA;
-        });
-
-        sortedFeedPosts = normalPosts;
-        displayedFeedPosts = 0;
-        const container = document.getElementById('feed');
-        container.innerHTML = '';
-        appendFeedBatch(12);
+        const newScreams = posts.length - previousPostCount;
+        if (newScreams >= 10) {
+          pollRate = Math.min(pollRate + 5, 30000);
+          startPolling();
+        }
+        previousPostCount = posts.length;
+        renderFeed();
       } catch(e) {
         console.log("%cvoid swallowed feed — retrying", "color:#ff00cc");
+        if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
       }
     }
 
-    function appendFeedBatch(batchSize) {
-      const container = document.getElementById('feed');
-      const start = displayedFeedPosts;
-      const end = Math.min(start + batchSize, sortedFeedPosts.length);
-      for (let i = start; i < end; i++) {
-        container.innerHTML += renderSinglePost(sortedFeedPosts[i]);
+    async function saveNewPost(newPost) {
+      try {
+        if (!newPost.type) newPost.type = "post";
+        const res = await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
+        if (!res.ok) throw new Error();
+        await loadPosts();
+      } catch(e) {
+        console.log("%cvoid swallowed your scream (retry in 2s)", "color:#ff00cc");
       }
-      displayedFeedPosts = end;
+    }
+
+    function startPolling() {
+      clearInterval(pollTimer);
+      pollTimer = setInterval(loadPosts, pollRate);
+    }
+
+    function renderEmptyFeed() {
+      const container = document.getElementById('feed');
+      container.innerHTML = `<div class="flex-1 flex items-center justify-center" style="background: #0a001f;"><div class="neon-cyan text-center">the void is quiet...<br><span class="text-xs">scream first</span></div></div>`;
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('feed');
+      if (!posts.length) {
+        renderEmptyFeed();
+        return;
+      }
+      let normalPosts = posts.filter(p => !p.pinned);
+      normalPosts.sort((a, b) => {
+        const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
+        const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
+        return scoreB - scoreA;
+      });
+      container.innerHTML = normalPosts.map(p => renderSinglePost(p)).join('');
     }
 
     function renderSinglePost(p) {
-      const av = p.avatar || FALLBACK_AVATAR;
+      const av = p.avatar || {color: '#ff00cc', icon: 'fa-skull'};
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
-      
-      let avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background:#0a001f;border-radius:9999px;overflow:hidden;">`;
-      if (av.layers && av.layers.length) {
-        av.layers.forEach(layer => {
-          const offsetStyle = `translate(calc(-50% + ${layer.offsetX || 0}px), calc(-50% + ${layer.offsetY || 0}px))`;
-          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color};transform:${offsetStyle} rotate(${layer.rotate || 0}deg) scale(${layer.scale || 1});font-size:80px;text-shadow:0 0 ${(layer.glow || 1)*25}px ${layer.color};animation:avatarBreathGlow ${(layer.pulse || 1.2)}s infinite alternate;"></i>`;
-        });
-      } else {
-        avatarHTML += `<i class="fa-solid fa-skull" style="font-size:80px;color:#ff00cc;text-shadow:0 0 20px #ff00cc;"></i>`;
-      }
-      avatarHTML += `</div>`;
-
       return `
         <div class="card rounded-3xl p-6 post overflow-hidden" data-id="${p.id}">
           <div class="flex items-center gap-4 mb-4">
-            ${avatarHTML}
+            <div style="background:${av.color}" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_${av.color}]">
+              <i class="fa-solid ${av.icon}"></i>
+            </div>
             <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
-          <div class="scream-text text-lg leading-tight neon-cyan whitespace-pre-wrap">${escapeHtml(p.content || '')}</div>
-          ${p.image ? getMediaPreviewHTML(p.image, p.id) : ''}
+          <div class="scream-text">${escapeHtml(p.content)}</div>
+          ${p.image ? getMediaPreviewHTML(p.image) : ''}
           
           <div class="vote-overlay">
             <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
@@ -401,27 +530,30 @@
           </div>
 
           <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3">
-            <div class="flex items-center gap-3">
-              <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
-              <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
-            </div>
+            <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
           </div>
+          <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
         </div>`;
     }
 
     async function castVote(postId, direction) {
-      if (!lastScreamer || voteDebounce[postId]) return;
+      if (!lastScreamer) {
+        console.log("%cvoid needs your name first", "color:#ff00cc");
+        return;
+      }
+      if (voteDebounce[postId]) return;
       voteDebounce[postId] = true;
+
+      const scoreEl = document.getElementById(`voteScore-${postId}`);
+      if (!scoreEl) return;
 
       const current = voteScores[postId] !== undefined ? voteScores[postId] : (posts.find(p => p.id === postId)?.voteScore || 0);
       voteScores[postId] = current + direction;
+      const post = posts.find(p => p.id === postId);
+      if (post) post.voteScore = voteScores[postId];
 
-      if (voteScores[postId] <= -5) {
-        try { await fetch('save.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "delete", postId}) }); } catch(e) {}
-        delete voteScores[postId];
-        loadPosts();
-        return;
-      }
+      scoreEl.textContent = voteScores[postId];
+      scoreEl.classList.add('vote-score-flash');
 
       try {
         await fetch('save.php', {
@@ -429,20 +561,21 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({type: "vote", postId, name: lastScreamer, vote: direction})
         });
-      } catch(e) {}
-
-      delete voteDebounce[postId];
-      loadPosts();
-    }
-
-    function castVoteFromModal(direction) {
-      if (!currentPostId) return;
-      castVote(currentPostId, direction);
-      setTimeout(() => openCommentsModal(currentPostId), 400);
+      } catch(e) {
+        console.log("%cvoid swallowed vote — retrying", "color:#ff00cc");
+        setTimeout(() => loadPosts(), 800);
+      } finally {
+        setTimeout(() => {
+          delete voteDebounce[postId];
+          scoreEl.classList.remove('vote-score-flash');
+          renderFeed();
+        }, 600);
+      }
     }
 
     function refreshFeedAndScroll() {
       loadPosts();
+      window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function showQuizModal() {
@@ -451,206 +584,173 @@
     }
     function finishVibeCheck() {
       document.getElementById('quizModal').classList.add('hidden');
-      showAvatarCreatorModal();
+      showAvatarModal();
     }
-
-    // AVATAR CREATOR (unchanged from pre-avatar stable commits)
-    let currentLayers = [];
-    let currentBaseShape = 0;
-    let currentBaseColor = '#00ffff';
-    let selectedLayerIndex = -1;
-    let isDragging = false;
-    let wasDragged = false;
-
-    function saveTempAvatar() {
-      localStorage.setItem('tempAvatar', JSON.stringify({baseShape: currentBaseShape, baseColor: currentBaseColor, layers: currentLayers}));
-    }
-
-    function loadUserAvatar() {
-      const saved = localStorage.getItem('selectedAvatar') || localStorage.getItem('tempAvatar');
-      userAvatar = saved ? JSON.parse(saved) : FALLBACK_AVATAR;
-    }
-
-    async function downloadAvatar() {
-      const preview = document.getElementById('avatarPreview');
-      if (!preview) return;
-      try {
-        const canvas = await html2canvas(preview, { backgroundColor: '#0a001f', scale: 2 });
-        const link = document.createElement('a');
-        link.download = `void-avatar-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        document.getElementById('avatarDownloadModal').classList.remove('hidden');
-      } catch(e) {}
-    }
-
-    function hideAvatarDownloadModal() { document.getElementById('avatarDownloadModal').classList.add('hidden'); }
-
-    function showAvatarCreatorModal() {
-      document.getElementById('avatarCreatorModal').classList.remove('hidden');
-      const saved = localStorage.getItem('tempAvatar');
-      if (saved) {
-        const data = JSON.parse(saved);
-        currentBaseShape = data.baseShape || 0;
-        currentBaseColor = data.baseColor || '#00ffff';
-        currentLayers = data.layers || [];
-      } else {
-        currentLayers = [];
-        currentBaseShape = 0;
-        currentBaseColor = '#00ffff';
-      }
-      selectedLayerIndex = currentLayers.length > 0 ? 0 : -1;
-      renderBaseShapePicker();
-      renderIconLibrary();
-      updateLivePreview();
-      attachPreviewDrag();
-    }
-
-    function hideAvatarCreatorModal() { document.getElementById('avatarCreatorModal').classList.add('hidden'); }
-
-    function renderBaseShapePicker() {
-      const container = document.getElementById('baseShapePicker');
-      container.innerHTML = baseShapes.map((shape, i) => `
-        <div onclick="selectBaseShape(${i});event.stopImmediatePropagation()" class="text-4xl cursor-pointer ${i===currentBaseShape ? 'neon-lime scale-125' : 'neon-cyan'}">
-          <i class="fa-solid ${shape.icon}"></i>
+    function showAvatarModal() {
+      document.getElementById('avatarModal').classList.remove('hidden');
+      const picker = document.getElementById('avatarPickerBig');
+      picker.innerHTML = avatarOptions.map((av, i) => `
+        <div onclick="selectAvatarFromModal(${i});event.stopImmediatePropagation()" style="background:${av.color}" class="avatar-option ${i===0?'selected':''}">
+          <i class="fa-solid ${av.icon}"></i>
         </div>
       `).join('');
+      document.getElementById('avatarName').value = lastScreamer || "screamer_666";
+      selectedAvatar = avatarOptions[0];
     }
-
-    function selectBaseShape(i) {
-      currentBaseShape = i;
-      renderBaseShapePicker();
-      updateLivePreview();
-      saveTempAvatar();
+    function hideAvatarModal() { document.getElementById('avatarModal').classList.add('hidden'); }
+    function selectAvatarFromModal(idx) {
+      selectedAvatar = avatarOptions[idx];
+      document.querySelectorAll('#avatarPickerBig .avatar-option').forEach((el, i) => el.classList.toggle('selected', i===idx));
     }
-
-    function renderIconLibrary() {
-      const container = document.getElementById('iconLibrary');
-      container.innerHTML = iconLibrary.map((icon, i) => {
-        const unlocked = i < 5;
-        return `<div onclick="${unlocked ? `addIconToLayer('${icon}');event.stopImmediatePropagation()` : ''}" class="text-3xl transition ${unlocked ? 'neon-pink hover:scale-125' : 'text-zinc-600 pointer-events-none'}"><i class="fa-solid ${icon}"></i></div>`;
-      }).join('');
-    }
-
-    function addIconToLayer(icon) {
-      if (currentLayers.length >= 5) return alert("MAX 5 LAYERS");
-      currentLayers.push({icon: icon, color: '#ff00cc', rotate: 0, scale: 1.0, glow: 1, pulse: 1.2, offsetX: 0, offsetY: 0});
-      selectedLayerIndex = currentLayers.length - 1;
-      updateLivePreview();
-      saveTempAvatar();
-    }
-
-    function applyGlobalColor(color) {
-      if (selectedLayerIndex >= 0 && currentLayers[selectedLayerIndex]) currentLayers[selectedLayerIndex].color = color;
-      else currentBaseColor = color;
-      updateLivePreview();
-      saveTempAvatar();
-    }
-
-    function cycleGlowIntensity() {
-      if (selectedLayerIndex < 0 || !currentLayers[selectedLayerIndex]) return;
-      let layer = currentLayers[selectedLayerIndex];
-      let idx = glowLevels.findIndex(v => Math.abs(v - layer.glow) < 0.01);
-      if (idx === -1) idx = 0;
-      layer.glow = glowLevels[(idx + 1) % glowLevels.length];
-      updateLivePreview();
-      saveTempAvatar();
-    }
-
-    function cycleLayerScale() {
-      if (selectedLayerIndex < 0 || !currentLayers[selectedLayerIndex]) return;
-      let layer = currentLayers[selectedLayerIndex];
-      layer.scale += 0.05;
-      if (layer.scale > 2.0) layer.scale = 0.05;
-      updateLivePreview();
-      saveTempAvatar();
-    }
-
-    function updateLivePreview() {
-      const preview = document.getElementById('avatarPreview');
-      let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
-      const baseIcon = baseShapes[currentBaseShape].icon;
-      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:${currentBaseColor};"></i>`;
-      currentLayers.forEach(layer => {
-        const glowPx = (layer.glow || 1) * 25;
-        const pulseStyle = layer.pulse > 0 ? `animation:avatarBreathGlow ${layer.pulse}s infinite alternate` : '';
-        const offsetStyle = `translate(calc(-50% + ${(layer.offsetX || 0)}px), calc(-50% + ${(layer.offsetY || 0)}px))`;
-        html += `<i class="fa-solid ${layer.icon} avatar-layer" style="font-size:80px;color:${layer.color};transform:${offsetStyle} rotate(${layer.rotate || 0}deg) scale(${layer.scale || 1});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
-      });
-      html += `</div>`;
-      preview.innerHTML = html;
-    }
-
-    function attachPreviewDrag() {
-      const preview = document.getElementById('avatarPreview');
-      let startX, startY;
-
-      function startDrag(e) {
-        if (selectedLayerIndex === -1) return;
-        isDragging = true;
-        wasDragged = false;
-        const rect = preview.getBoundingClientRect();
-        startX = e.clientX - rect.left;
-        startY = e.clientY - rect.top;
-      }
-
-      function dragMove(e) {
-        if (!isDragging) return;
-        wasDragged = true;
-        const rect = preview.getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
-        const dx = currentX - startX;
-        const dy = currentY - startY;
-        let layer = currentLayers[selectedLayerIndex];
-        layer.offsetX = (layer.offsetX || 0) + dx * 0.8;
-        layer.offsetY = (layer.offsetY || 0) + dy * 0.8;
-        const maxOffset = 60;
-        layer.offsetX = Math.max(-maxOffset, Math.min(maxOffset, layer.offsetX));
-        layer.offsetY = Math.max(-maxOffset, Math.min(maxOffset, layer.offsetY));
-        updateLivePreview();
-        saveTempAvatar();
-      }
-
-      function endDrag() { isDragging = false; }
-
-      preview.addEventListener('mousedown', startDrag);
-      preview.addEventListener('mousemove', dragMove);
-      preview.addEventListener('mouseup', endDrag);
-      preview.addEventListener('mouseleave', endDrag);
-
-      preview.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(e.touches[0]); });
-      preview.addEventListener('touchmove', (e) => { e.preventDefault(); dragMove(e.touches[0]); });
-      preview.addEventListener('touchend', endDrag);
-
-      preview.addEventListener('click', (e) => {
-        if (!wasDragged && selectedLayerIndex >= 0) cycleLayerScale();
-        wasDragged = false;
-      });
-    }
-
-    function saveCustomAvatar() {
-      const selectedAvatar = { baseShape: currentBaseShape, baseColor: currentBaseColor, layers: [...currentLayers] };
-      localStorage.setItem('selectedAvatar', JSON.stringify(selectedAvatar));
-      userAvatar = selectedAvatar;
-      hideAvatarCreatorModal();
+    async function finishOnboarding() {
+      const nameInput = document.getElementById('avatarName').value.trim() || "anonymous";
+      lastScreamer = nameInput;
+      localStorage.setItem('lastScreamer', lastScreamer);
+      localStorage.setItem('vcOnboardingComplete', 'true');
+      hideAvatarModal();
       document.getElementById('mainContent').style.display = 'flex';
       loadPosts();
     }
 
+  function showScreamModal() {
+      document.getElementById('screamModal').classList.remove('hidden');
+      document.getElementById('screamName').value = lastScreamer || "";
+      document.getElementById('screamText').value = '';
+      document.getElementById('imgUrl').value = '';
+
+      // NEW: Reset + trigger infinite scroll feed (only this block was added to match my earlier example)
+      feedItems.innerHTML = '';     
+      currentPage = 1;
+      hasMore = true;
+      loadMoreScreams();            
+    }
+    function hideScreamModal() { document.getElementById('screamModal').classList.add('hidden'); }
+    async function screamNow() {
+      const name = document.getElementById('screamName').value.trim() || "anonymous";
+      const content = document.getElementById('screamText').value.trim();
+      if (!content) return alert("You must scream something!");
+      const id = await getPSTTimestamp();
+      const newPost = {
+        type: "post",
+        id: id,
+        name: name,
+        content: content,
+        image: document.getElementById('imgUrl').value.trim() || null,
+        avatar: selectedAvatar || avatarOptions[0],
+        comments: []
+      };
+      await saveNewPost(newPost);
+      hideScreamModal();
+      lastScreamer = name;
+      localStorage.setItem('lastScreamer', name);
+    }
+    function openCommentsModal(id) {
+      currentPostId = id;
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      document.getElementById('commentsModal').classList.remove('hidden');
+      document.getElementById('modalPostHeader').innerHTML = `${escapeHtml(post.name)}'s SCREAM`;
+      const list = document.getElementById('commentsList');
+      list.innerHTML = (post.comments || []).map(c => `
+        <div class="bg-[#0f0022] rounded-2xl p-4">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="neon-pink font-bold">${escapeHtml(c.name)}</span>
+          </div>
+          <div class="neon-cyan">${escapeHtml(c.content)}</div>
+        </div>
+      `).join('');
+    }
+    function hideCommentsModal() {
+      document.getElementById('commentsModal').classList.add('hidden');
+      currentPostId = null;
+    }
+    async function submitModalComment() {
+      const text = document.getElementById('modalCommentText').value.trim();
+      if (!text || !currentPostId) return;
+      await fetch('save.php', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "comment", postId: currentPostId, name: lastScreamer || "anonymous", content: text})})
+        .catch(() => console.log("%cvoid swallowed screech", "color:#ff00cc"));
+      document.getElementById('modalCommentText').value = '';
+      await loadPosts();
+      openCommentsModal(currentPostId);
+    }
+
     function showImageModal(src) {
       const modal = document.getElementById('imageModal');
+      const container = document.getElementById('mediaContainer');
       const imgEl = document.getElementById('modalImage');
+      const videoEl = document.getElementById('modalVideo');
+      const iframeEl = document.getElementById('modalIframe');
+
       imgEl.classList.add('hidden');
+      videoEl.classList.add('hidden');
+      iframeEl.classList.add('hidden');
+      imgEl.src = '';
+      videoEl.src = '';
+      iframeEl.src = '';
+
       modal.classList.remove('hidden');
-      imgEl.src = src;
-      imgEl.classList.remove('hidden');
+
+      const lowerSrc = src.toLowerCase();
+      const ext = lowerSrc.split('.').pop();
+
+      if (['mp4','webm','ogg','mov'].includes(ext)) {
+        videoEl.src = src;
+        videoEl.classList.remove('hidden');
+        videoEl.style.width = '100%';
+        videoEl.style.height = '100%';
+        videoEl.play().catch(()=>{});
+      } else if (isYouTube(src)) {
+        iframeEl.src = getYouTubeEmbed(src);
+        iframeEl.classList.remove('hidden');
+        iframeEl.style.width = '100%';
+        iframeEl.style.height = '100%';
+      } else if (isVimeo(src)) {
+        iframeEl.src = getVimeoEmbed(src);
+        iframeEl.classList.remove('hidden');
+        iframeEl.style.width = '100%';
+        iframeEl.style.height = '100%';
+      } else if (isGoogleDriveVideo(src)) {
+        iframeEl.src = getGoogleDriveEmbed(src);
+        iframeEl.classList.remove('hidden');
+        iframeEl.style.width = '100%';
+        iframeEl.style.height = '100%';
+      } else if (isGameLink(src)) {
+        // GAME LINK NOW DEFAULTS TO 85% VIEWPORT SIZE (perfect for 1920x1080 TV when you zoom out the browser)
+        iframeEl.src = src;
+        iframeEl.classList.remove('hidden');
+        iframeEl.style.width = '85%';
+        iframeEl.style.height = 'auto';
+        iframeEl.style.maxHeight = '82vh';
+        iframeEl.style.aspectRatio = '16 / 9';
+      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html')) {
+        iframeEl.src = src;
+        iframeEl.classList.remove('hidden');
+        iframeEl.style.width = '100%';
+        iframeEl.style.height = '100%';
+      } else {
+        imgEl.src = src;
+        imgEl.classList.remove('hidden');
+      }
     }
 
     function hideImageModal() {
-      document.getElementById('imageModal').classList.add('hidden');
+      const modal = document.getElementById('imageModal');
+      const imgEl = document.getElementById('modalImage');
+      const videoEl = document.getElementById('modalVideo');
+      const iframeEl = document.getElementById('modalIframe');
+
+      videoEl.pause();
+      videoEl.src = '';
+      iframeEl.src = '';
+
+      imgEl.classList.add('hidden');
+      videoEl.classList.add('hidden');
+      iframeEl.classList.add('hidden');
+
+      modal.classList.add('hidden');
     }
 
+    // === ABYSS FALL ANIMATION (intensifies while scrolling UP) ===
     function spawnAbyssParticle(intensity = 1) {
       const fallLayer = document.getElementById('abyss-fall');
       for (let i = 0; i < 4 * intensity; i++) {
@@ -658,145 +758,43 @@
         particle.className = 'falling';
         const icons = ['☠️','👁️','🌀','⚡','🔥','🌑','AHH','VOID','SCREAM','💀','✧','🕳️'];
         particle.textContent = icons[Math.floor(Math.random()*icons.length)];
+        
         particle.style.left = Math.random() * 100 + 'vw';
         particle.style.animationDuration = (Math.random() * 9 + 6) + 's';
         particle.style.animationDelay = '-' + (Math.random() * 15) + 's';
         particle.style.opacity = Math.random() * 0.25 + 0.07;
         particle.style.fontSize = (Math.random() * 22 + 16) + 'px';
+        
         fallLayer.appendChild(particle);
-        setTimeout(() => particle.remove(), 22000);
+        
+        setTimeout(() => {
+          if (particle.parentNode) particle.parentNode.removeChild(particle);
+        }, 22000);
       }
     }
 
     function startAbyssFall() {
       setInterval(() => spawnAbyssParticle(1), 380);
-      const feed = document.getElementById('feed');
-      feed.addEventListener('scroll', () => {
-        if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 200 && displayedFeedPosts < sortedFeedPosts.length) {
-          appendFeedBatch(8);
+      let lastScrollY = 0;
+      document.getElementById('feed').addEventListener('scroll', () => {
+        const currentY = document.getElementById('feed').scrollTop;
+        if (currentY < lastScrollY) {
+          spawnAbyssParticle(4);
         }
+        lastScrollY = currentY;
       });
-    }
-
-    function showScreamModal() {
-      if (!lastScreamer) lastScreamer = "voidwalker";
-      document.getElementById('screamName').value = lastScreamer;
-      document.getElementById('screamText').value = '';
-      document.getElementById('imgUrl').value = '';
-      document.getElementById('screamModal').classList.remove('hidden');
-    }
-
-    function hideScreamModal() {
-      document.getElementById('screamModal').classList.add('hidden');
-    }
-
-    async function screamNow() {
-      const name = document.getElementById('screamName').value.trim() || lastScreamer || "voidwalker";
-      const content = document.getElementById('screamText').value.trim();
-      const image = document.getElementById('imgUrl').value.trim();
-      if (!content) return alert("the void needs something to forget");
-
-      const newPost = {
-        id: Date.now(),
-        name: name,
-        content: content,
-        image: image || null,
-        voteScore: 0,
-        comments: [],
-        avatar: userAvatar || FALLBACK_AVATAR
-      };
-
-      // OPTIMISTIC LOCAL ADD (pre-avatar-creator stable pattern)
-      posts.unshift(newPost);
-      sortedFeedPosts.unshift(newPost);
-      const container = document.getElementById('feed');
-      container.innerHTML = renderSinglePost(newPost) + container.innerHTML;
-      displayedFeedPosts++;
-
-      // SEND TO SERVER (flat fields to match save.php exactly)
-      try {
-        await fetch('save.php', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            type: "post",
-            id: newPost.id,
-            name: newPost.name,
-            content: newPost.content,
-            image: newPost.image,
-            avatar: newPost.avatar
-          })
-        });
-      } catch(e) { console.log("save.php POST failed — but local render kept it alive"); }
-
-      hideScreamModal();
-      document.getElementById('screamText').value = '';
-      document.getElementById('imgUrl').value = '';
-
-      // DELAYED FULL SYNC (prevents disappear race condition)
-      setTimeout(() => loadPosts(), 900);
-    }
-
-    function openCommentsModal(postId) {
-      currentPostId = postId;
-      const post = posts.find(p => p.id === postId) || sortedFeedPosts.find(p => p.id === postId);
-      if (!post) return;
-
-      document.getElementById('modalPostHeader').textContent = post.name + " SCREAM";
-      document.getElementById('modalCommentCount').innerHTML = `SCREECHES <span class="neon-lime">(${post.comments ? post.comments.length : 0})</span>`;
-      document.getElementById('modalVoteScore').textContent = voteScores[postId] !== undefined ? voteScores[postId] : (post.voteScore || 0);
-
-      const mediaContainer = document.getElementById('commentsMediaContainer');
-      mediaContainer.innerHTML = post.image ? renderEmbeddedMedia(post.image) : '';
-
-      const list = document.getElementById('commentsList');
-      list.innerHTML = '';
-      if (post.comments && post.comments.length) {
-        post.comments.forEach(c => {
-          list.innerHTML += `<div class="card p-4"><div class="neon-pink">${escapeHtml(c.name)}</div><div>${escapeHtml(c.text)}</div></div>`;
-        });
-      }
-
-      document.getElementById('commentsModal').classList.remove('hidden');
-    }
-
-    function hideCommentsModal() {
-      document.getElementById('commentsModal').classList.add('hidden');
-      currentPostId = null;
-    }
-
-    async function submitModalComment() {
-      const text = document.getElementById('modalCommentText').value.trim();
-      if (!text || !currentPostId) return;
-
-      const comment = {name: lastScreamer || "voidwalker", text: text};
-
-      try {
-        await fetch('save.php', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({type: "comment", postId: currentPostId, comment: comment})
-        });
-      } catch(e) {}
-
-      document.getElementById('modalCommentText').value = '';
-      openCommentsModal(currentPostId);
-    }
-
-    function addNewLayer() {
-      if (currentLayers.length >= 5) return alert("MAX 5 LAYERS");
     }
 
     function init() {
       startAbyssFall();
-      loadUserAvatar();
       const onboardingDone = localStorage.getItem('vcOnboardingComplete') === 'true';
       if (!onboardingDone) {
         document.getElementById('ageWarningModal').classList.remove('hidden');
       } else {
         document.getElementById('mainContent').style.display = 'flex';
+        selectedAvatar = avatarOptions[0];
         loadPosts();
-        setInterval(loadPosts, 6000);
+        startPolling();
       }
       if (!lastScreamer) lastScreamer = "voidwalker";
     }
