@@ -183,16 +183,16 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* COMMENTS MODAL – full-bleed header + timestamp in bottom-right only */
+    /* COMMENTS MODAL – media locked top + infinite scroll list */
     #commentsModal .card {
-      max-height: 92vh;
+      max-height: 94vh;
     }
     #commentsHeader {
-      padding: 1.25rem 1rem;
+      padding: 1.35rem 1rem;
       border-bottom: 2px solid #ff00cc;
       background: #1a0033;
-      margin-left: -1rem;
-      margin-right: -1rem;
+      margin-left: -15px;
+      margin-right: -15px;
       position: relative;
       z-index: 10;
     }
@@ -200,19 +200,7 @@
       padding: 1rem;
       background: #0a001f;
       border-bottom: 2px solid #ff00cc33;
-    }
-    #commentsInfoBar {
-      padding: 0.75rem 1rem;
-      background: #1a0033;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #modalTimestamp {
-      position: absolute;
-      bottom: 18px;
-      right: 18px;
-      z-index: 20;
+      flex-shrink: 0;
     }
     #commentsMediaContainer iframe,
     #commentsMediaContainer video,
@@ -227,7 +215,16 @@
       border-radius: 16px;
     }
     #commentsList {
+      flex: 1;
+      overflow-y: auto;
       padding: 1.25rem;
+      background: #1a0033;
+    }
+    #modalTimestamp {
+      position: absolute;
+      bottom: 22px;
+      right: 22px;
+      z-index: 20;
     }
   </style>
 </head>
@@ -298,36 +295,24 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL (SCREECHES) -->
+  <!-- COMMENTS MODAL -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
-    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[92vh] flex flex-col overflow-hidden">
-      
-      <!-- FULL-BLEED HEADER (extends past screen edges – no vertical borders) -->
-      <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-5">
+    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
+      <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
         <div id="modalPostHeader" class="neon-pink font-bold text-lg"></div>
         <button onclick="hideCommentsModal()" class="text-3xl neon-cyan">X</button>
       </div>
-      
-      <!-- EMBEDDED MEDIA -->
-      <div id="commentsMediaContainer" class="p-5 bg-[#0a001f]"></div>
-      
-      <!-- SCREECHES COUNT (left) -->
+      <div id="commentsMediaContainer" class="p-5 bg-[#0a001f] flex-shrink-0"></div>
       <div class="px-5 py-3 border-b border-[#ff00cc]/30 bg-[#1a0033] flex items-center justify-between">
         <span id="modalCommentCount" class="text-sm neon-cyan">SCREECHES <span class="neon-lime"></span></span>
       </div>
-      
-      <!-- VOTING (centered) -->
       <div class="px-5 py-2 bg-[#1a0033] flex items-center justify-center gap-6">
         <div onclick="castVoteFromModal(1)" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00] cursor-pointer"></div>
         <span id="modalVoteScore" class="neon-lime font-mono text-sm"></span>
         <div onclick="castVoteFromModal(-1)" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] cursor-pointer"></div>
       </div>
-      
-      <!-- TIMESTAMP ONLY IN BOTTOM-RIGHT CORNER (same height as before) -->
-      <div id="modalTimestamp" class="timestamp absolute bottom-[78px] right-5 z-20"></div>
-      
-      <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
-      
+      <div id="modalTimestamp" class="timestamp absolute bottom-20 right-5 z-20"></div>
+      <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6 bg-[#1a0033]"></div>
       <div class="p-5 border-t border-[#ff00cc]/30 bg-[#1a0033]">
         <div class="flex gap-3">
           <input id="modalCommentText" type="text" placeholder="Write a screech or reply..." class="flex-1 bg-[#0f0022] border border-[#ccff00] rounded-3xl px-5 py-3 text-sm neon-lime focus:outline-none">
@@ -377,6 +362,14 @@
     let previousPostCount = 0;
     let voteDebounce = {};
     let voteScores = {}; 
+
+    // INFINITE SCROLL FOR MAIN FEED
+    let sortedFeedPosts = [];
+    let displayedFeedPosts = 0;
+
+    // INFINITE SCROLL FOR COMMENTS (unchanged)
+    let currentComments = [];
+    let displayedComments = 0;
 
     const MAX_POSTS = 100;
     const avatarOptions = [
@@ -445,24 +438,6 @@
       return `<img src="${src}" class="max-w-full rounded-3xl border-4 border-[#00ffff]">`;
     }
 
-    async function getPSTTimestamp() {
-      try {
-        const res = await fetch('save.php');
-        if (!res.ok) throw new Error("void empty");
-        posts = await res.json();
-        const newScreams = posts.length - previousPostCount;
-        if (newScreams >= 10) {
-          pollRate = Math.min(pollRate + 5, 30000);
-          startPolling();
-        }
-        previousPostCount = posts.length;
-        renderFeed();
-      } catch(e) {
-        console.log("%cvoid swallowed feed — retrying", "color:#ff00cc");
-        if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
-      }
-    }
-
     function formatPSTTimestamp(ts) {
       const date = new Date(ts);
       const hour = String(date.getHours()).padStart(2, '0');
@@ -521,6 +496,16 @@
       container.innerHTML = `<div class="flex-1 flex items-center justify-center" style="background: #0a001f;"><div class="neon-cyan text-center">the void is quiet...<br><span class="text-xs">scream first</span></div></div>`;
     }
 
+    function appendFeedBatch(batchSize) {
+      const container = document.getElementById('feed');
+      const start = displayedFeedPosts;
+      const end = Math.min(start + batchSize, sortedFeedPosts.length);
+      for (let i = start; i < end; i++) {
+        container.innerHTML += renderSinglePost(sortedFeedPosts[i]);
+      }
+      displayedFeedPosts = end;
+    }
+
     function renderFeed() {
       const container = document.getElementById('feed');
       if (!posts.length) {
@@ -533,7 +518,10 @@
         const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
         return scoreB - scoreA;
       });
-      container.innerHTML = normalPosts.map(p => renderSinglePost(p)).join('');
+      sortedFeedPosts = normalPosts;
+      displayedFeedPosts = 0;
+      container.innerHTML = '';
+      appendFeedBatch(12); // initial batch
     }
 
     function renderSinglePost(p) {
@@ -597,7 +585,11 @@
         setTimeout(() => {
           delete voteDebounce[postId];
           scoreEl.classList.remove('vote-score-flash');
+          // refresh visible batch only
+          const container = document.getElementById('feed');
+          const scrollPos = container.scrollTop;
           renderFeed();
+          container.scrollTop = scrollPos;
         }, 600);
       }
     }
@@ -658,7 +650,7 @@
       const name = document.getElementById('screamName').value.trim() || "anonymous";
       const content = document.getElementById('screamText').value.trim();
       if (!content) return alert("You must scream something!");
-      const id = await getPSTTimestamp();
+      const id = Date.now(); // fallback for timestamp
       const newPost = {
         type: "post",
         id: id,
@@ -672,6 +664,23 @@
       hideScreamModal();
       lastScreamer = name;
       localStorage.setItem('lastScreamer', name);
+    }
+
+    function appendCommentsBatch(batchSize) {
+      const list = document.getElementById('commentsList');
+      const start = displayedComments;
+      const end = Math.min(start + batchSize, currentComments.length);
+      for (let i = start; i < end; i++) {
+        const c = currentComments[i];
+        list.innerHTML += `
+          <div class="bg-[#0f0022] rounded-2xl p-4">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="neon-pink font-bold">${escapeHtml(c.name)}</span>
+            </div>
+            <div class="neon-cyan">${escapeHtml(c.content)}</div>
+          </div>`;
+      }
+      displayedComments = end;
     }
 
     function openCommentsModal(id) {
@@ -688,21 +697,25 @@
       document.getElementById('modalTimestamp').innerHTML = formatPSTTimestamp(post.id);
       document.getElementById('modalCommentCount').innerHTML = `SCREECHES <span class="neon-lime">(${post.comments ? post.comments.length : 0})</span>`;
 
+      currentComments = post.comments || [];
+      displayedComments = 0;
       const list = document.getElementById('commentsList');
-      list.innerHTML = (post.comments || []).map(c => `
-        <div class="bg-[#0f0022] rounded-2xl p-4">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="neon-pink font-bold">${escapeHtml(c.name)}</span>
-          </div>
-          <div class="neon-cyan">${escapeHtml(c.content)}</div>
-        </div>
-      `).join('');
+      list.innerHTML = '';
+      appendCommentsBatch(10);
+
+      list.onscroll = () => {
+        if (list.scrollTop + list.clientHeight >= list.scrollHeight - 150 && displayedComments < currentComments.length) {
+          appendCommentsBatch(8);
+        }
+      };
     }
 
     function hideCommentsModal() {
       document.getElementById('commentsModal').classList.add('hidden');
       currentPostId = null;
       document.getElementById('commentsMediaContainer').innerHTML = '';
+      const list = document.getElementById('commentsList');
+      if (list) list.onscroll = null;
     }
 
     async function submitModalComment() {
@@ -736,7 +749,6 @@
       modal.classList.add('hidden');
     }
 
-    // === ABYSS FALL ANIMATION (intensifies while scrolling UP) ===
     function spawnAbyssParticle(intensity = 1) {
       const fallLayer = document.getElementById('abyss-fall');
       for (let i = 0; i < 4 * intensity; i++) {
@@ -762,12 +774,18 @@
     function startAbyssFall() {
       setInterval(() => spawnAbyssParticle(1), 380);
       let lastScrollY = 0;
-      document.getElementById('feed').addEventListener('scroll', () => {
-        const currentY = document.getElementById('feed').scrollTop;
+      const feed = document.getElementById('feed');
+      feed.addEventListener('scroll', () => {
+        const currentY = feed.scrollTop;
         if (currentY < lastScrollY) {
           spawnAbyssParticle(4);
         }
         lastScrollY = currentY;
+
+        // MAIN FEED INFINITE SCROLL
+        if (currentY + feed.clientHeight >= feed.scrollHeight - 200 && displayedFeedPosts < sortedFeedPosts.length) {
+          appendFeedBatch(8);
+        }
       });
     }
 
