@@ -41,7 +41,7 @@
     .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 10px #ff00cc88; transition: all 0.3s ease; position: relative; }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
     .post { transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); position: relative; }
-    .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; }
+    .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 12px; }
     .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
     .flavor-text { font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; padding: 0.5rem 1rem; background: rgba(0,0,0,0.3); border-top: 1px solid #ff00cc33; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; pointer-events: none; display: block; }
     .image-wrapper { border-radius: 24px; overflow: hidden; border: 3px solid #00ffff66; box-shadow: 0 0 15px #00ffff44; margin: 0.75rem 0; position: relative; }
@@ -66,7 +66,7 @@
     @keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @keyframes avatarBreathGlow { 0% { text-shadow: 0 0 15px currentColor; } 100% { text-shadow: 0 0 35px currentColor; } }
 
-    /* RESTORED COMMENTS MODAL STYLING – exact pre-avatar-creator state (full-bleed header, clean card screeches, classic positioning) */
+    /* RESTORED COMMENTS MODAL STYLING – exact pre-avatar-creator state */
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
     #commentsMediaContainer { padding: 1rem; background: #0a001f; border-bottom: 2px solid #ff00cc33; flex-shrink: 0; }
@@ -184,7 +184,7 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL – RESTORED TO PRE-AVATAR-CREATOR STYLING (clean scream-feed matching cards, full-bleed header, classic positioning) -->
+  <!-- COMMENTS MODAL – restored pre-avatar-creator clean styling -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
       <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
@@ -234,7 +234,9 @@
     
     <div id="feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 pb-32"></div>
 
-    <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
+    <!-- SCREAM BUTTON WITH USER AVATAR (populated from save file) -->
+    <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white" id="screamButton">
+      <div id="userAvatarInButton" class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0" style="background:#0a001f"></div>
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
@@ -246,6 +248,7 @@
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
+    let userAvatar = null; // persistent user avatar for button + new screams
     let pollRate = 6000;
     let pollTimer = null;
     let previousPostCount = 0;
@@ -475,7 +478,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – restored modal styling everywhere else ====================
+    // ==================== AVATAR CREATOR + USER AVATAR ON SCREAM BUTTON ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -489,6 +492,30 @@
         baseColor: currentBaseColor,
         layers: currentLayers
       }));
+    }
+
+    function loadUserAvatar() {
+      const saved = localStorage.getItem('selectedAvatar') || localStorage.getItem('tempAvatar');
+      if (saved) {
+        userAvatar = JSON.parse(saved);
+        renderUserAvatarInButton();
+      }
+    }
+
+    function renderUserAvatarInButton() {
+      const container = document.getElementById('userAvatarInButton');
+      if (!userAvatar || !container) return;
+      let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;overflow:hidden;">`;
+      const baseIcon = baseShapes[userAvatar.baseShape || 0].icon;
+      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[48px] opacity-30" style="color:${userAvatar.baseColor || '#00ffff'}"></i>`;
+      if (userAvatar.layers && userAvatar.layers.length) {
+        userAvatar.layers.forEach(layer => {
+          const glowPx = (layer.glow || 1) * 12;
+          html += `<i class="fa-solid ${layer.icon}" style="font-size:32px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate || 0}deg) scale(${layer.scale || 1});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};"></i>`;
+        });
+      }
+      html += `</div>`;
+      container.innerHTML = html;
     }
 
     async function downloadAvatar() {
@@ -681,6 +708,9 @@
         baseColor: currentBaseColor,
         layers: [...currentLayers]
       };
+      localStorage.setItem('selectedAvatar', JSON.stringify(selectedAvatar)); // permanent user avatar
+      userAvatar = selectedAvatar;
+      renderUserAvatarInButton();
       hideAvatarCreatorModal();
       document.getElementById('mainContent').style.display = 'flex';
       loadPosts();
@@ -750,7 +780,7 @@
         image: image || null,
         voteScore: 0,
         comments: [],
-        avatar: selectedAvatar || null
+        avatar: userAvatar || selectedAvatar || null   // use persistent userAvatar
       };
 
       try {
@@ -820,6 +850,7 @@
 
     function init() {
       startAbyssFall();
+      loadUserAvatar(); // load persistent avatar for scream button
       const onboardingDone = localStorage.getItem('vcOnboardingComplete') === 'true';
       if (!onboardingDone) {
         document.getElementById('ageWarningModal').classList.remove('hidden');
