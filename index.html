@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     :root { --abyss: #0a001f; }
-    html, body, #feed { scrollbar-width: none; -ms-overflow-style: none; }
-    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar { display: none; }
+    html, body, #feed, #avatarCreatorModal * { scrollbar-width: none; -ms-overflow-style: none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar, #avatarCreatorModal::-webkit-scrollbar { display: none; }
 
     html { display: flex; justify-content: center; background: var(--abyss); }
     body { 
@@ -53,14 +53,14 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* ENHANCED AVATAR CREATOR – glow + pulse + now first 5 icons only unlocked */
+    /* AVATAR CREATOR – rotation now drag on builder, scale removed, pulse multi-tap, eyedropper in corner */
     #avatarCreatorModal .preview-container {
-      width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border: 4px solid #00ffff; border-radius: 9999px; overflow: hidden;
+      width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border: 4px solid #00ffff; border-radius: 9999px; overflow: hidden; cursor: grab;
     }
     .avatar-layer {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: all 0.1s linear;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: all 0.1s linear; user-select: none;
     }
-    #layerControls input[type="range"] { accent-color: #ff00cc; }
+    .avatar-layer:active { cursor: grabbing; }
 
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
@@ -103,22 +103,27 @@
     </div>
   </div>
 
-  <!-- CUSTOM AVATAR CREATOR MODAL – first 5 icons only unlocked, rest grayed out -->
+  <!-- CUSTOM AVATAR CREATOR MODAL – rotation now drag on builder, scale removed, first 5 icons unlocked -->
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
       
-      <!-- LIVE PREVIEW -->
+      <!-- LIVE PREVIEW – DRAG TO ROTATE SELECTED LAYER -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative" style="box-shadow: 0 0 30px #00ffff;"></div>
       
-      <!-- BASE SHAPE + COLOR -->
-      <div class="mb-4">
-        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE + COLOR</div>
-        <div id="baseShapePicker" class="flex gap-3 justify-center mb-3"></div>
-        <input type="color" id="baseColorPicker" value="#00ffff" onchange="updateBaseColor(this.value)" class="w-full h-8 accent-[#ff00cc]">
+      <!-- EYEDROPPER COLOR PICKER – locked upper-left corner -->
+      <div class="absolute top-6 left-6 z-30">
+        <label class="neon-cyan text-xs font-medium">COLOR</label>
+        <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyEyedropperColor(this.value)" class="w-10 h-10 border-4 border-white rounded-full cursor-pointer">
       </div>
       
-      <!-- LAYER CONTROLS -->
+      <!-- BASE SHAPE -->
+      <div class="mb-4">
+        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE</div>
+        <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
+      </div>
+      
+      <!-- LAYERS (pulse multi-tap button) -->
       <div class="flex-1 overflow-y-auto mb-4">
         <div class="flex justify-between items-center mb-3">
           <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
@@ -127,7 +132,7 @@
         <div id="layerList" class="space-y-3"></div>
       </div>
       
-      <!-- ICON LIBRARY – ONLY FIRST 5 UNLOCKED, REST GRAYED OUT -->
+      <!-- ICON LIBRARY – first 5 unlocked, rest grayed -->
       <div class="mb-4">
         <div class="neon-cyan text-sm font-medium tracking-widest mb-2">PICK ICON (FIRST 5 UNLOCKED)</div>
         <div id="iconLibrary" class="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-[#0f0022] rounded-2xl"></div>
@@ -444,11 +449,14 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== ENHANCED AVATAR CREATOR (FIRST 5 ICONS ONLY) ====================
+    // ==================== AVATAR CREATOR – ROTATION ON BUILDER (DRAG) ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
     let selectedLayerIndex = -1;
+
+    let isDragging = false;
+    let startAngle = 0;
 
     function showAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.remove('hidden');
@@ -460,10 +468,16 @@
       renderLayerList();
       renderIconLibrary();
       updateLivePreview();
+      attachPreviewDrag();
     }
 
     function hideAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.add('hidden');
+      const preview = document.getElementById('avatarPreview');
+      preview.removeEventListener('mousedown', startDrag);
+      preview.removeEventListener('mousemove', dragRotate);
+      preview.removeEventListener('mouseup', endDrag);
+      preview.removeEventListener('mouseleave', endDrag);
     }
 
     function renderBaseShapePicker() {
@@ -489,10 +503,10 @@
     function renderIconLibrary() {
       const container = document.getElementById('iconLibrary');
       container.innerHTML = iconLibrary.map((icon, i) => {
-        const isUnlocked = i < 5;
+        const unlocked = i < 5;
         return `
-          <div onclick="${isUnlocked ? `addIconToLayer('${icon}');event.stopImmediatePropagation()` : ''}" 
-               class="text-3xl cursor-pointer transition ${isUnlocked ? 'neon-pink hover:scale-125' : 'text-zinc-600 pointer-events-none'}">
+          <div onclick="${unlocked ? `addIconToLayer('${icon}');event.stopImmediatePropagation()` : ''}" 
+               class="text-3xl transition ${unlocked ? 'neon-pink hover:scale-125' : 'text-zinc-600 pointer-events-none'}">
             <i class="fa-solid ${icon}"></i>
           </div>`;
       }).join('');
@@ -520,18 +534,7 @@
           <div class="flex items-center gap-3">
             <i class="fa-solid ${layer.icon} text-3xl" style="color:${layer.color}"></i>
             <input type="color" value="${layer.color}" onchange="updateLayerColor(${i}, this.value)" class="w-8 h-6">
-            <input type="range" min="0.5" max="2" step="0.05" value="${layer.scale}" onchange="updateLayerScale(${i}, this.value)" class="flex-1 accent-[#ff00cc]">
-            <input type="range" min="-180" max="180" step="1" value="${layer.rotate}" onchange="updateLayerRotate(${i}, this.value)" class="flex-1 accent-[#ff00cc]">
-          </div>
-          <div class="flex gap-4 mt-3">
-            <div class="flex-1">
-              <div class="text-xs neon-cyan">GLOW</div>
-              <input type="range" min="0" max="3" step="0.1" value="${layer.glow}" onchange="updateLayerGlow(${i}, this.value)" class="w-full accent-[#ff00cc]">
-            </div>
-            <div class="flex-1">
-              <div class="text-xs neon-cyan">PULSE (s)</div>
-              <input type="range" min="0" max="4" step="0.1" value="${layer.pulse}" onchange="updateLayerPulse(${i}, this.value)" class="w-full accent-[#ff00cc]">
-            </div>
+            <button onclick="cyclePulse(${i});event.stopImmediatePropagation()" class="px-3 py-1 bg-[#00ffff] text-xs rounded-xl neon-cyan">PULSE: ${layer.pulse}s</button>
             <button onclick="removeLayer(${i});event.stopImmediatePropagation()" class="text-red-500 text-xl">×</button>
           </div>
         </div>
@@ -548,23 +551,11 @@
       updateLivePreview();
     }
 
-    function updateLayerScale(i, scale) {
-      currentLayers[i].scale = parseFloat(scale);
-      updateLivePreview();
-    }
-
-    function updateLayerRotate(i, rotate) {
-      currentLayers[i].rotate = parseFloat(rotate);
-      updateLivePreview();
-    }
-
-    function updateLayerGlow(i, glow) {
-      currentLayers[i].glow = parseFloat(glow);
-      updateLivePreview();
-    }
-
-    function updateLayerPulse(i, pulse) {
-      currentLayers[i].pulse = parseFloat(pulse);
+    function cyclePulse(i) {
+      const pulses = [0, 0.8, 1.5, 2.5];
+      let idx = pulses.indexOf(currentLayers[i].pulse);
+      currentLayers[i].pulse = pulses[(idx + 1) % pulses.length];
+      renderLayerList();
       updateLivePreview();
     }
 
@@ -590,6 +581,56 @@
       updateLivePreview();
     }
 
+    function attachPreviewDrag() {
+      const preview = document.getElementById('avatarPreview');
+      let startX, startY, startRotate;
+
+      function startDrag(e) {
+        if (selectedLayerIndex === -1) return;
+        isDragging = true;
+        const rect = preview.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        startRotate = currentLayers[selectedLayerIndex].rotate;
+      }
+
+      function dragRotate(e) {
+        if (!isDragging) return;
+        const rect = preview.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        const startAngle = Math.atan2(startY - centerY, startX - centerX) * (180 / Math.PI);
+        const currentAngle = Math.atan2(currentY - centerY, currentX - centerX) * (180 / Math.PI);
+
+        let delta = currentAngle - startAngle;
+        currentLayers[selectedLayerIndex].rotate = (startRotate + delta + 360) % 360;
+        updateLivePreview();
+      }
+
+      function endDrag() {
+        isDragging = false;
+      }
+
+      preview.addEventListener('mousedown', startDrag);
+      preview.addEventListener('mousemove', dragRotate);
+      preview.addEventListener('mouseup', endDrag);
+      preview.addEventListener('mouseleave', endDrag);
+
+      // Touch support
+      preview.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        startDrag(e.touches[0]);
+      });
+      preview.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        dragRotate(e.touches[0]);
+      });
+      preview.addEventListener('touchend', endDrag);
+    }
+
     function updateLivePreview() {
       const preview = document.getElementById('avatarPreview');
       let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
@@ -600,7 +641,7 @@
       currentLayers.forEach(layer => {
         const glowPx = layer.glow * 25;
         const pulseStyle = layer.pulse > 0 ? `animation:avatarPulse ${layer.pulse}s infinite alternate` : '';
-        html += `<i class="fa-solid ${layer.icon} absolute" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
+        html += `<i class="fa-solid ${layer.icon} avatar-layer" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
       });
       html += `</div>`;
       preview.innerHTML = html;
