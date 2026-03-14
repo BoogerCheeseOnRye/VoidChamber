@@ -53,12 +53,12 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* CUSTOM AVATAR CREATOR MODAL – new from this change only */
+    /* ENHANCED AVATAR CREATOR – glow + pulse added */
     #avatarCreatorModal .preview-container {
       width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border: 4px solid #00ffff; border-radius: 9999px; overflow: hidden;
     }
     .avatar-layer {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: transform 0.1s;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: all 0.1s linear;
     }
     #layerControls input[type="range"] { accent-color: #ff00cc; }
 
@@ -103,7 +103,7 @@
     </div>
   </div>
 
-  <!-- CUSTOM AVATAR CREATOR MODAL – new character creator (only change applied) -->
+  <!-- CUSTOM AVATAR CREATOR MODAL – fleshed out with glow intensity, pulse frequency, expanded color options -->
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
@@ -111,13 +111,14 @@
       <!-- LIVE PREVIEW -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative" style="box-shadow: 0 0 30px #00ffff;"></div>
       
-      <!-- BASE SHAPE (5 locked options) -->
+      <!-- BASE SHAPE + COLOR -->
       <div class="mb-4">
-        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE (LOCKED TO 5)</div>
-        <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
+        <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE + COLOR</div>
+        <div id="baseShapePicker" class="flex gap-3 justify-center mb-3"></div>
+        <input type="color" id="baseColorPicker" value="#00ffff" onchange="updateBaseColor(this.value)" class="w-full h-8 accent-[#ff00cc]">
       </div>
       
-      <!-- LAYER CONTROLS -->
+      <!-- LAYER CONTROLS (now with glow + pulse) -->
       <div class="flex-1 overflow-y-auto mb-4">
         <div class="flex justify-between items-center mb-3">
           <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
@@ -216,7 +217,7 @@
     let posts = [];
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
-    let selectedAvatar = null; // now complex object {baseShape, layers: [{icon, color, rotate, scale, gradient}]}
+    let selectedAvatar = null;
     let pollRate = 6000;
     let pollTimer = null;
     let previousPostCount = 0;
@@ -230,8 +231,6 @@
     let displayedComments = 0;
 
     const MAX_POSTS = 100;
-    
-    // 5 locked base shapes
     const baseShapes = [
       {id: 0, name: "CIRCLE", icon: "fa-circle"},
       {id: 1, name: "HEX", icon: "fa-hexagon"},
@@ -240,7 +239,6 @@
       {id: 4, name: "FRAME", icon: "fa-square"}
     ];
 
-    // 40+ royalty-free FA icons for layering (cyberpunk/abyss theme)
     const iconLibrary = [
       'fa-skull','fa-fire','fa-bolt','fa-eye','fa-dragon','fa-ghost','fa-crown','fa-spider',
       'fa-dice','fa-biohazard','fa-radiation','fa-virus','fa-mask','fa-swords','fa-shield','fa-crosshairs',
@@ -365,16 +363,15 @@
       const av = p.avatar || {baseShape: 0, layers: []};
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
       
-      let avatarHTML = '';
+      let avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background:#0a001f;border-radius:9999px;overflow:hidden;">`;
       if (av.layers && av.layers.length) {
-        avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background: #0a001f; border-radius: 9999px; overflow: hidden;">`;
         av.layers.forEach(layer => {
-          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color}; transform: translate(-50%, -50%) rotate(${layer.rotate}deg) scale(${layer.scale}); font-size: 80px;"></i>`;
+          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});font-size:80px;text-shadow:0 0 ${layer.glow*20}px ${layer.color};animation:avatarPulse ${layer.pulse}s infinite alternate;"></i>`;
         });
-        avatarHTML += `</div>`;
       } else {
-        avatarHTML = `<div style="background:#ff00cc" class="w-12 h-12 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_#ff00cc]"><i class="fa-solid fa-skull"></i></div>`;
+        avatarHTML += `<i class="fa-solid fa-skull" style="font-size:80px;color:#ff00cc;text-shadow:0 0 20px #ff00cc;"></i>`;
       }
+      avatarHTML += `</div>`;
 
       return `
         <div class="card rounded-3xl p-6 post overflow-hidden" data-id="${p.id}">
@@ -447,15 +444,17 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== CUSTOM AVATAR CREATOR LOGIC ====================
+    // ==================== ENHANCED AVATAR CREATOR ====================
     let currentLayers = [];
     let currentBaseShape = 0;
+    let currentBaseColor = '#00ffff';
     let selectedLayerIndex = -1;
 
     function showAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.remove('hidden');
       currentLayers = [];
       currentBaseShape = 0;
+      currentBaseColor = '#00ffff';
       selectedLayerIndex = -1;
       renderBaseShapePicker();
       renderLayerList();
@@ -482,6 +481,11 @@
       updateLivePreview();
     }
 
+    function updateBaseColor(color) {
+      currentBaseColor = color;
+      updateLivePreview();
+    }
+
     function renderIconLibrary() {
       const container = document.getElementById('iconLibrary');
       container.innerHTML = iconLibrary.map(icon => `
@@ -498,7 +502,8 @@
         color: '#ff00cc',
         rotate: 0,
         scale: 1.0,
-        gradient: false
+        glow: 1.5,
+        pulse: 1.2
       });
       selectedLayerIndex = currentLayers.length - 1;
       renderLayerList();
@@ -508,14 +513,24 @@
     function renderLayerList() {
       const container = document.getElementById('layerList');
       container.innerHTML = currentLayers.map((layer, i) => `
-        <div onclick="selectLayer(${i});event.stopImmediatePropagation()" class="flex items-center gap-3 bg-[#0f0022] p-3 rounded-2xl cursor-pointer ${i===selectedLayerIndex ? 'border-2 border-[#ccff00]' : ''}">
-          <i class="fa-solid ${layer.icon} text-3xl" style="color:${layer.color}"></i>
-          <div class="flex-1">
-            <input type="color" value="${layer.color}" onchange="updateLayerColor(${i}, this.value)" class="w-10 h-6 bg-transparent border-0">
-            <input type="range" min="0.5" max="2" step="0.05" value="${layer.scale}" onchange="updateLayerScale(${i}, this.value)" class="w-20 accent-[#ff00cc]">
-            <input type="range" min="-180" max="180" step="1" value="${layer.rotate}" onchange="updateLayerRotate(${i}, this.value)" class="w-20 accent-[#ff00cc]">
+        <div onclick="selectLayer(${i});event.stopImmediatePropagation()" class="flex flex-col bg-[#0f0022] p-4 rounded-2xl cursor-pointer ${i===selectedLayerIndex ? 'border-2 border-[#ccff00]' : ''}">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid ${layer.icon} text-3xl" style="color:${layer.color}"></i>
+            <input type="color" value="${layer.color}" onchange="updateLayerColor(${i}, this.value)" class="w-8 h-6">
+            <input type="range" min="0.5" max="2" step="0.05" value="${layer.scale}" onchange="updateLayerScale(${i}, this.value)" class="flex-1 accent-[#ff00cc]">
+            <input type="range" min="-180" max="180" step="1" value="${layer.rotate}" onchange="updateLayerRotate(${i}, this.value)" class="flex-1 accent-[#ff00cc]">
           </div>
-          <button onclick="removeLayer(${i});event.stopImmediatePropagation()" class="text-red-500">×</button>
+          <div class="flex gap-4 mt-3">
+            <div class="flex-1">
+              <div class="text-xs neon-cyan">GLOW</div>
+              <input type="range" min="0" max="3" step="0.1" value="${layer.glow}" onchange="updateLayerGlow(${i}, this.value)" class="w-full accent-[#ff00cc]">
+            </div>
+            <div class="flex-1">
+              <div class="text-xs neon-cyan">PULSE (s)</div>
+              <input type="range" min="0" max="4" step="0.1" value="${layer.pulse}" onchange="updateLayerPulse(${i}, this.value)" class="w-full accent-[#ff00cc]">
+            </div>
+            <button onclick="removeLayer(${i});event.stopImmediatePropagation()" class="text-red-500 text-xl">×</button>
+          </div>
         </div>
       `).join('');
     }
@@ -540,6 +555,16 @@
       updateLivePreview();
     }
 
+    function updateLayerGlow(i, glow) {
+      currentLayers[i].glow = parseFloat(glow);
+      updateLivePreview();
+    }
+
+    function updateLayerPulse(i, pulse) {
+      currentLayers[i].pulse = parseFloat(pulse);
+      updateLivePreview();
+    }
+
     function removeLayer(i) {
       currentLayers.splice(i, 1);
       if (selectedLayerIndex >= currentLayers.length) selectedLayerIndex = currentLayers.length - 1;
@@ -554,7 +579,8 @@
         color: '#ff00cc',
         rotate: 0,
         scale: 1.0,
-        gradient: false
+        glow: 1.5,
+        pulse: 1.2
       });
       selectedLayerIndex = currentLayers.length - 1;
       renderLayerList();
@@ -565,12 +591,13 @@
       const preview = document.getElementById('avatarPreview');
       let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
       
-      // base shape (simple tint)
       const baseIcon = baseShapes[currentBaseShape].icon;
-      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:#00ffff"></i>`;
+      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:${currentBaseColor};text-shadow:0 0 30px ${currentBaseColor};"></i>`;
       
       currentLayers.forEach(layer => {
-        html += `<i class="fa-solid ${layer.icon} absolute" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;"></i>`;
+        const glowPx = layer.glow * 25;
+        const pulseStyle = layer.pulse > 0 ? `animation:avatarPulse ${layer.pulse}s infinite alternate` : '';
+        html += `<i class="fa-solid ${layer.icon} absolute" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
       });
       html += `</div>`;
       preview.innerHTML = html;
@@ -579,6 +606,7 @@
     function saveCustomAvatar() {
       selectedAvatar = {
         baseShape: currentBaseShape,
+        baseColor: currentBaseColor,
         layers: [...currentLayers]
       };
       hideAvatarCreatorModal();
