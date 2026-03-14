@@ -248,17 +248,12 @@
     let userAvatar = null;
     let pollRate = 6000;
     let pollTimer = null;
-    let previousPostCount = 0;
     let voteDebounce = {};
     let voteScores = {}; 
 
     let sortedFeedPosts = [];
     let displayedFeedPosts = 0;
 
-    let currentComments = [];
-    let displayedComments = 0;
-
-    const MAX_POSTS = 100;
     const baseShapes = [
       {id: 0, name: "CIRCLE", icon: "fa-circle"},
       {id: 1, name: "HEX", icon: "fa-hexagon"},
@@ -768,13 +763,6 @@
         avatar: userAvatar || FALLBACK_AVATAR
       };
 
-      // INSTANT LOCAL ADD FOR IMMEDIATE VISIBILITY (pre-avatar-creator behavior)
-      posts.unshift(newPost);
-      sortedFeedPosts.unshift(newPost);
-      const container = document.getElementById('feed');
-      container.innerHTML = renderSinglePost(newPost) + container.innerHTML;
-      displayedFeedPosts++;
-
       try {
         await fetch('save.php', {
           method: 'POST',
@@ -786,6 +774,7 @@
       hideScreamModal();
       document.getElementById('screamText').value = '';
       document.getElementById('imgUrl').value = '';
+      loadPosts();  // ← RESTORED EXACT PRE-AVATAR-CREATOR BEHAVIOR (no local unshift, full reload after save)
     }
 
     function openCommentsModal(postId) {
