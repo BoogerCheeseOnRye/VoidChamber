@@ -66,7 +66,7 @@
     @keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @keyframes avatarBreathGlow { 0% { text-shadow: 0 0 15px currentColor; } 100% { text-shadow: 0 0 35px currentColor; } }
 
-    /* RESTORED COMMENTS MODAL STYLING – exact pre-avatar-creator state (full-bleed header, clean card sizing, no timestamp) */
+    /* RESTORED COMMENTS MODAL STYLING – exact pre-avatar-creator state (full-bleed header, clean card sizing, neat tidy video player at top with full features, no timestamp) */
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
     #commentsMediaContainer { padding: 1rem; background: #0a001f; border-bottom: 2px solid #ff00cc33; flex-shrink: 0; }
@@ -183,7 +183,7 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL – restored pre-avatar-creator clean styling (no timestamp) -->
+  <!-- COMMENTS MODAL – restored pre-avatar-creator clean styling (full-bleed header, neat tidy video player at top with full features, no timestamp) -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
       <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
@@ -232,7 +232,7 @@
     
     <div id="feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 pb-32"></div>
 
-    <!-- CLEAN FLOATING SCREAM BUTTON (restored pre-avatar-creator) -->
+    <!-- CLEAN FLOATING SCREAM BUTTON -->
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
@@ -416,7 +416,7 @@
             ${avatarHTML}
             <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
-          <div class="scream-text">${escapeHtml(p.content)}</div>
+          <div class="scream-text text-lg leading-tight neon-cyan">${escapeHtml(p.content || '')}</div>
           ${p.image ? getMediaPreviewHTML(p.image, p.id) : ''}
           
           <div class="vote-overlay">
