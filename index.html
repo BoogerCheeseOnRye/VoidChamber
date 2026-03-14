@@ -11,19 +11,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     :root { --abyss: #0a001f; }
-    html, body, #feed {
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar {
-      display: none;
-    }
+    html, body, #feed { scrollbar-width: none; -ms-overflow-style: none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, #feed::-webkit-scrollbar { display: none; }
 
-    html {
-      display: flex;
-      justify-content: center;
-      background: var(--abyss);
-    }
+    html { display: flex; justify-content: center; background: var(--abyss); }
     body { 
       background: var(--abyss); 
       font-family: system-ui, sans-serif; 
@@ -37,195 +28,48 @@
       position: relative;
     }
     
-    #abyss-fall {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: -1;
-      overflow: hidden;
-    }
-    
-    .falling {
-      position: absolute;
-      color: #ff00cc;
-      font-size: 22px;
-      opacity: 0.12;
-      text-shadow: 0 0 12px #ff00cc, 0 0 25px #00ffff;
-      animation: abyssFall linear forwards;
-      user-select: none;
-    }
-    
-    @keyframes abyssFall {
-      to {
-        transform: translateY(120vh) rotate(720deg);
-      }
-    }
+    #abyss-fall { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+    .falling { position: absolute; color: #ff00cc; font-size: 22px; opacity: 0.12; text-shadow: 0 0 12px #ff00cc, 0 0 25px #00ffff; animation: abyssFall linear forwards; user-select: none; }
+    @keyframes abyssFall { to { transform: translateY(120vh) rotate(720deg); } }
 
     .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
     .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
     .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
    
-    .cyber-header {
-      text-align: center;
-      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
-      border-bottom: 2px solid #00ffff;
-      box-shadow: 0 0 15px #00ffff;
-      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
-      flex-shrink: 0;
-      z-index: 10;
-    }
-    .card {
-      background: #1a0033;
-      border: 2px solid #ff00cc88;
-      box-shadow: 0 0 10px #ff00cc88;
-      transition: all 0.3s ease;
-      position: relative;
-    }
+    .cyber-header { text-align: center; padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem; border-bottom: 2px solid #00ffff; box-shadow: 0 0 15px #00ffff; background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent); flex-shrink: 0; z-index: 10; }
+    .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 10px #ff00cc88; transition: all 0.3s ease; position: relative; }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
-    .post {
-      transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
-      position: relative;
-    }
-    .void-scream-btn {
-      background: linear-gradient(45deg, #ff00cc, #00ffff);
-      padding: 1.2rem 3rem;
-      border-radius: 9999px;
-      position: fixed;
-      bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem));
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 40;
-      box-shadow: 0 8px 25px rgba(255,0,204,0.5);
-      transition: all 0.2s;
-      font-size: 1.25rem;
-      font-weight: bold;
-    }
+    .post { transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); position: relative; }
+    .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; }
     .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
-    .flavor-text {
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.4);
-      text-align: center;
-      padding: 0.5rem 1rem;
-      background: rgba(0,0,0,0.3);
-      border-top: 1px solid #ff00cc33;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 50;
-      pointer-events: none;
-    }
-    .image-wrapper {
-      border-radius: 24px;
-      overflow: hidden;
-      border: 3px solid #00ffff66;
-      box-shadow: 0 0 15px #00ffff44;
-      margin: 0.75rem 0;
-      position: relative;
-    }
-    .post-image {
-      width: 100%;
-      max-height: 260px;
-      object-fit: contain;
-      display: block;
-    }
-    .play-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 5rem;
-      color: #fff;
-      text-shadow: 0 0 20px #ff00cc;
-      pointer-events: none;
-      opacity: 0.9;
-    }
-    .avatar-option {
-      width: 64px; height: 64px;
-      border-radius: 9999px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
-      transition: all 0.2s;
-      box-shadow: 0 0 16px currentColor;
-      cursor: pointer;
-    }
-    .avatar-option:hover, .avatar-option.selected {
-      transform: scale(1.18);
-      box-shadow: 0 0 32px currentColor;
-    }
-    .timestamp {
-      font-size: 11px;
-      color: #00ffff;
-      text-shadow: 0 0 8px #00ffff;
-      opacity: 0.9;
-      font-family: monospace;
-    }
-    .vote-overlay {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0,0,0,0.6);
-      padding: 4px 10px;
-      border-radius: 9999px;
-      z-index: 10;
-    }
-    .neon-chevron {
-      font-size: 18px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+    .flavor-text { font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; padding: 0.5rem 1rem; background: rgba(0,0,0,0.3); border-top: 1px solid #ff00cc33; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; pointer-events: none; }
+    .image-wrapper { border-radius: 24px; overflow: hidden; border: 3px solid #00ffff66; box-shadow: 0 0 15px #00ffff44; margin: 0.75rem 0; position: relative; }
+    .post-image { width: 100%; max-height: 260px; object-fit: contain; display: block; }
+    .play-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)); display: flex; align-items: center; justify-content: center; font-size: 5rem; color: #fff; text-shadow: 0 0 20px #ff00cc; pointer-events: none; opacity: 0.9; }
+    .timestamp { font-size: 11px; color: #00ffff; text-shadow: 0 0 8px #00ffff; opacity: 0.9; font-family: monospace; }
+    .vote-overlay { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 9999px; z-index: 10; }
+    .neon-chevron { font-size: 18px; cursor: pointer; transition: all 0.2s; }
     .neon-chevron:hover { transform: scale(1.3); text-shadow: 0 0 15px currentColor; }
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* COMMENTS MODAL – media locked top + infinite scroll list */
-    #commentsModal .card {
-      max-height: 94vh;
+    #mainContent { flex: 1 1 auto; display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    #feed { 
+      flex: 1 1 auto; 
+      min-height: 0; 
+      overflow-y: auto; 
+      -webkit-overflow-scrolling: touch; 
+      padding: 1rem 1rem 5.5rem 1rem; 
+      space-y-6; 
+      background: var(--abyss);
     }
-    #commentsHeader {
-      padding: 1.35rem 1rem;
-      border-bottom: 2px solid #ff00cc;
-      background: #1a0033;
-      margin-left: -15px;
-      margin-right: -15px;
-      position: relative;
-      z-index: 10;
-    }
-    #commentsMediaContainer {
-      padding: 1rem;
-      background: #0a001f;
-      border-bottom: 2px solid #ff00cc33;
-      flex-shrink: 0;
-    }
-    #commentsMediaContainer iframe,
-    #commentsMediaContainer video,
-    #commentsMediaContainer img {
-      width: 80%;
-      height: auto;
-      max-height: 78vh;
-      aspect-ratio: 16 / 9;
-      margin: 0 auto;
-      display: block;
-      border: 4px solid #00ffff;
-      border-radius: 16px;
-    }
-    #commentsList {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.25rem;
-      background: #1a0033;
-    }
-    #modalTimestamp {
-      position: absolute;
-      bottom: 22px;
-      right: 22px;
-      z-index: 20;
-    }
+
+    #commentsModal .card { max-height: 94vh; }
+    #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
+    #commentsMediaContainer { padding: 1rem; background: #0a001f; border-bottom: 2px solid #ff00cc33; flex-shrink: 0; }
+    #commentsMediaContainer iframe, #commentsMediaContainer video, #commentsMediaContainer img { width: 80%; height: auto; max-height: 78vh; aspect-ratio: 16 / 9; margin: 0 auto; display: block; border: 4px solid #00ffff; border-radius: 16px; }
+    #commentsList { flex: 1; overflow-y: auto; padding: 1.25rem; background: #1a0033; -webkit-overflow-scrolling: touch; }
+    #modalTimestamp { position: absolute; bottom: 22px; right: 22px; z-index: 20; }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
@@ -337,19 +181,19 @@
   </div>
 
   <!-- MAIN CONTENT -->
-  <div id="mainContent" class="hidden flex-1 flex flex-col">
+  <div id="mainContent" class="hidden flex-1 flex flex-col min-h-0">
     <div onclick="refreshFeedAndScroll()" class="cyber-header relative flex-shrink-0">
       <h1 class="text-6xl font-black tracking-[-5px] neon-pink">VOIDSCREAM</h1>
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
     </div>
     
-    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 pb-20"></div>
+    <div id="feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 pb-32"></div>
 
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
-    <div class="flavor-text">the void forgets everything • scroll up to feel the fall</div>
+    <div class="flavor-text">the void forgets everything • scroll down for lower ranked screams</div>
   </div>
 
 <script>
@@ -363,11 +207,9 @@
     let voteDebounce = {};
     let voteScores = {}; 
 
-    // INFINITE SCROLL FOR MAIN FEED
     let sortedFeedPosts = [];
     let displayedFeedPosts = 0;
 
-    // INFINITE SCROLL FOR COMMENTS (unchanged)
     let currentComments = [];
     let displayedComments = 0;
 
@@ -462,38 +304,27 @@
         const res = await fetch('save.php');
         if (!res.ok) throw new Error("void empty");
         posts = await res.json();
-        const newScreams = posts.length - previousPostCount;
-        if (newScreams >= 10) {
-          pollRate = Math.min(pollRate + 5, 30000);
-          startPolling();
-        }
-        previousPostCount = posts.length;
-        renderFeed();
+
+        posts = posts.filter(p => {
+          const score = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
+          return score > -5;
+        });
+
+        let normalPosts = posts.filter(p => !p.pinned);
+        normalPosts.sort((a, b) => {
+          const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
+          const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
+          return scoreB - scoreA;
+        });
+
+        sortedFeedPosts = normalPosts;
+        displayedFeedPosts = 0;
+        const container = document.getElementById('feed');
+        container.innerHTML = '';
+        appendFeedBatch(12);
       } catch(e) {
         console.log("%cvoid swallowed feed — retrying", "color:#ff00cc");
-        if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
       }
-    }
-
-    async function saveNewPost(newPost) {
-      try {
-        if (!newPost.type) newPost.type = "post";
-        const res = await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
-        if (!res.ok) throw new Error();
-        await loadPosts();
-      } catch(e) {
-        console.log("%cvoid swallowed your scream (retry in 2s)", "color:#ff00cc");
-      }
-    }
-
-    function startPolling() {
-      clearInterval(pollTimer);
-      pollTimer = setInterval(loadPosts, pollRate);
-    }
-
-    function renderEmptyFeed() {
-      const container = document.getElementById('feed');
-      container.innerHTML = `<div class="flex-1 flex items-center justify-center" style="background: #0a001f;"><div class="neon-cyan text-center">the void is quiet...<br><span class="text-xs">scream first</span></div></div>`;
     }
 
     function appendFeedBatch(batchSize) {
@@ -504,24 +335,6 @@
         container.innerHTML += renderSinglePost(sortedFeedPosts[i]);
       }
       displayedFeedPosts = end;
-    }
-
-    function renderFeed() {
-      const container = document.getElementById('feed');
-      if (!posts.length) {
-        renderEmptyFeed();
-        return;
-      }
-      let normalPosts = posts.filter(p => !p.pinned);
-      normalPosts.sort((a, b) => {
-        const scoreA = voteScores[a.id] !== undefined ? voteScores[a.id] : (a.voteScore || 0);
-        const scoreB = voteScores[b.id] !== undefined ? voteScores[b.id] : (b.voteScore || 0);
-        return scoreB - scoreA;
-      });
-      sortedFeedPosts = normalPosts;
-      displayedFeedPosts = 0;
-      container.innerHTML = '';
-      appendFeedBatch(12); // initial batch
     }
 
     function renderSinglePost(p) {
@@ -554,23 +367,20 @@
     }
 
     async function castVote(postId, direction) {
-      if (!lastScreamer) {
-        console.log("%cvoid needs your name first", "color:#ff00cc");
-        return;
-      }
-      if (voteDebounce[postId]) return;
+      if (!lastScreamer || voteDebounce[postId]) return;
       voteDebounce[postId] = true;
-
-      const scoreEl = document.getElementById(`voteScore-${postId}`);
-      if (!scoreEl) return;
 
       const current = voteScores[postId] !== undefined ? voteScores[postId] : (posts.find(p => p.id === postId)?.voteScore || 0);
       voteScores[postId] = current + direction;
-      const post = posts.find(p => p.id === postId);
-      if (post) post.voteScore = voteScores[postId];
 
-      scoreEl.textContent = voteScores[postId];
-      scoreEl.classList.add('vote-score-flash');
+      if (voteScores[postId] <= -5) {
+        try {
+          await fetch('save.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "delete", postId}) });
+        } catch(e) {}
+        delete voteScores[postId];
+        loadPosts();
+        return;
+      }
 
       try {
         await fetch('save.php', {
@@ -578,20 +388,10 @@
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({type: "vote", postId, name: lastScreamer, vote: direction})
         });
-      } catch(e) {
-        console.log("%cvoid swallowed vote — retrying", "color:#ff00cc");
-        setTimeout(() => loadPosts(), 800);
-      } finally {
-        setTimeout(() => {
-          delete voteDebounce[postId];
-          scoreEl.classList.remove('vote-score-flash');
-          // refresh visible batch only
-          const container = document.getElementById('feed');
-          const scrollPos = container.scrollTop;
-          renderFeed();
-          container.scrollTop = scrollPos;
-        }, 600);
-      }
+      } catch(e) {}
+
+      delete voteDebounce[postId];
+      loadPosts();
     }
 
     function castVoteFromModal(direction) {
@@ -602,7 +402,6 @@
 
     function refreshFeedAndScroll() {
       loadPosts();
-      window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function showQuizModal() {
@@ -650,7 +449,7 @@
       const name = document.getElementById('screamName').value.trim() || "anonymous";
       const content = document.getElementById('screamText').value.trim();
       if (!content) return alert("You must scream something!");
-      const id = Date.now(); // fallback for timestamp
+      const id = Date.now();
       const newPost = {
         type: "post",
         id: id,
@@ -660,10 +459,13 @@
         avatar: selectedAvatar || avatarOptions[0],
         comments: []
       };
-      await saveNewPost(newPost);
+      try {
+        await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
+      } catch(e) {}
       hideScreamModal();
       lastScreamer = name;
       localStorage.setItem('lastScreamer', name);
+      loadPosts();
     }
 
     function appendCommentsBatch(batchSize) {
@@ -730,23 +532,16 @@
 
     function showImageModal(src) {
       const modal = document.getElementById('imageModal');
-      const container = document.getElementById('mediaContainer');
       const imgEl = document.getElementById('modalImage');
-
       imgEl.classList.add('hidden');
-      imgEl.src = '';
-
       modal.classList.remove('hidden');
       imgEl.src = src;
       imgEl.classList.remove('hidden');
     }
 
     function hideImageModal() {
-      const modal = document.getElementById('imageModal');
-      const imgEl = document.getElementById('modalImage');
-
-      imgEl.classList.add('hidden');
-      modal.classList.add('hidden');
+      document.getElementById('imageModal').classList.add('hidden');
+      document.getElementById('modalImage').classList.add('hidden');
     }
 
     function spawnAbyssParticle(intensity = 1) {
@@ -756,37 +551,31 @@
         particle.className = 'falling';
         const icons = ['☠️','👁️','🌀','⚡','🔥','🌑','AHH','VOID','SCREAM','💀','✧','🕳️'];
         particle.textContent = icons[Math.floor(Math.random()*icons.length)];
-        
         particle.style.left = Math.random() * 100 + 'vw';
         particle.style.animationDuration = (Math.random() * 9 + 6) + 's';
         particle.style.animationDelay = '-' + (Math.random() * 15) + 's';
         particle.style.opacity = Math.random() * 0.25 + 0.07;
         particle.style.fontSize = (Math.random() * 22 + 16) + 'px';
-        
         fallLayer.appendChild(particle);
-        
-        setTimeout(() => {
-          if (particle.parentNode) particle.parentNode.removeChild(particle);
-        }, 22000);
+        setTimeout(() => particle.remove(), 22000);
       }
     }
 
     function startAbyssFall() {
       setInterval(() => spawnAbyssParticle(1), 380);
-      let lastScrollY = 0;
       const feed = document.getElementById('feed');
       feed.addEventListener('scroll', () => {
-        const currentY = feed.scrollTop;
-        if (currentY < lastScrollY) {
-          spawnAbyssParticle(4);
-        }
-        lastScrollY = currentY;
-
-        // MAIN FEED INFINITE SCROLL
-        if (currentY + feed.clientHeight >= feed.scrollHeight - 200 && displayedFeedPosts < sortedFeedPosts.length) {
+        if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 200 && displayedFeedPosts < sortedFeedPosts.length) {
           appendFeedBatch(8);
         }
       });
+    }
+
+    async function saveNewPost(newPost) {
+      try {
+        await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
+        loadPosts();
+      } catch(e) {}
     }
 
     function init() {
@@ -798,7 +587,7 @@
         document.getElementById('mainContent').style.display = 'flex';
         selectedAvatar = avatarOptions[0];
         loadPosts();
-        startPolling();
+        setInterval(loadPosts, pollRate);
       }
       if (!lastScreamer) lastScreamer = "voidwalker";
     }
