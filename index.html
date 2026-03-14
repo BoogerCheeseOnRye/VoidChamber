@@ -54,7 +54,6 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* AVATAR CREATOR PREVIEW – pure dark background only + animation effects */
     #avatarCreatorModal .preview-container {
       width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border-radius: 9999px; overflow: hidden; cursor: grab;
       animation: avatarFloat 6s ease-in-out infinite;
@@ -66,7 +65,6 @@
     @keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @keyframes avatarBreathGlow { 0% { text-shadow: 0 0 15px currentColor; } 100% { text-shadow: 0 0 35px currentColor; } }
 
-    /* RESTORED COMMENTS MODAL STYLING – exact pre-avatar-creator state (full-bleed header, clean card sizing, neat tidy video player at top with full features, no timestamp) */
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
     #commentsMediaContainer { padding: 1rem; background: #0a001f; border-bottom: 2px solid #ff00cc33; flex-shrink: 0; }
@@ -76,7 +74,6 @@
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
 
-  <!-- ABYSS FALL LAYER -->
   <div id="abyss-fall"></div>
 
   <!-- AGE WARNING MODAL -->
@@ -125,40 +122,27 @@
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
-      
-      <!-- LIVE PREVIEW -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative"></div>
-      
-      <!-- SINGLE SOLID COLOR ORB -->
       <div class="absolute top-6 left-6 z-30">
         <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
       </div>
-      
-      <!-- GLOW CYCLE – silent levels -->
       <div onclick="cycleGlowIntensity();event.stopImmediatePropagation()" class="absolute top-6 right-6 z-30 cursor-pointer text-4xl neon-cyan">
         <i class="fa-solid fa-atom"></i>
       </div>
-      
-      <!-- BASE SHAPE -->
       <div class="mb-6">
         <div class="neon-cyan text-sm font-medium tracking-widest mb-2">BASE SHAPE</div>
         <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
       </div>
-      
-      <!-- LAYERS UI -->
       <div class="mb-4">
         <div class="flex justify-between items-center">
           <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
           <button onclick="addNewLayer()" class="px-5 py-2 bg-[#ff00cc] text-[#0a001f] font-bold text-xs rounded-xl">+ ADD LAYER</button>
         </div>
       </div>
-      
-      <!-- ICON LIBRARY -->
       <div class="mb-4">
         <div class="neon-cyan text-sm font-medium tracking-widest mb-2">PICK ICON (FIRST 5 UNLOCKED)</div>
         <div id="iconLibrary" class="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-[#0f0022] rounded-2xl"></div>
       </div>
-      
       <div class="flex gap-4 mt-auto">
         <button onclick="hideAvatarCreatorModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">CANCEL</button>
         <button onclick="downloadAvatar()" class="flex-1 py-6 bg-[#00ffff] text-[#0a001f] font-black text-lg rounded-3xl">DOWNLOAD SHADOW</button>
@@ -167,7 +151,7 @@
     </div>
   </div>
 
-  <!-- SCREAM MODAL – full restored input content (name, textarea, URL) -->
+  <!-- SCREAM MODAL -->
   <div id="screamModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4">
       <div class="mb-5">
@@ -183,7 +167,7 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL – restored pre-avatar-creator clean styling (full-bleed header, neat tidy video player at top with full features, no timestamp) -->
+  <!-- COMMENTS MODAL -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
       <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
@@ -209,7 +193,7 @@
     </div>
   </div>
 
-  <!-- IMAGE-ONLY MEDIA MODAL -->
+  <!-- IMAGE MODAL -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
     <div class="card rounded-3xl w-full max-w-[95vw] max-h-[96vh] mx-4 flex flex-col overflow-hidden">
@@ -232,7 +216,6 @@
     
     <div id="feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 pb-32"></div>
 
-    <!-- CLEAN FLOATING SCREAM BUTTON -->
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
@@ -244,10 +227,7 @@
     let posts = [];
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
-    let selectedAvatar = null;
     let userAvatar = null;
-    let pollRate = 6000;
-    let pollTimer = null;
     let voteDebounce = {};
     let voteScores = {}; 
 
@@ -437,9 +417,7 @@
       voteScores[postId] = current + direction;
 
       if (voteScores[postId] <= -5) {
-        try {
-          await fetch('save.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "delete", postId}) });
-        } catch(e) {}
+        try { await fetch('save.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({type: "delete", postId}) }); } catch(e) {}
         delete voteScores[postId];
         loadPosts();
         return;
@@ -476,7 +454,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR + PATHING TO SCREAMS ====================
+    // AVATAR CREATOR (unchanged from pre-avatar stable commits)
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -485,11 +463,7 @@
     let wasDragged = false;
 
     function saveTempAvatar() {
-      localStorage.setItem('tempAvatar', JSON.stringify({
-        baseShape: currentBaseShape,
-        baseColor: currentBaseColor,
-        layers: currentLayers
-      }));
+      localStorage.setItem('tempAvatar', JSON.stringify({baseShape: currentBaseShape, baseColor: currentBaseColor, layers: currentLayers}));
     }
 
     function loadUserAvatar() {
@@ -507,14 +481,10 @@
         link.href = canvas.toDataURL('image/png');
         link.click();
         document.getElementById('avatarDownloadModal').classList.remove('hidden');
-      } catch(e) {
-        alert("The void refused to spit out your shadow this time. Try again.");
-      }
+      } catch(e) {}
     }
 
-    function hideAvatarDownloadModal() {
-      document.getElementById('avatarDownloadModal').classList.add('hidden');
-    }
+    function hideAvatarDownloadModal() { document.getElementById('avatarDownloadModal').classList.add('hidden'); }
 
     function showAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.remove('hidden');
@@ -536,9 +506,7 @@
       attachPreviewDrag();
     }
 
-    function hideAvatarCreatorModal() {
-      document.getElementById('avatarCreatorModal').classList.add('hidden');
-    }
+    function hideAvatarCreatorModal() { document.getElementById('avatarCreatorModal').classList.add('hidden'); }
 
     function renderBaseShapePicker() {
       const container = document.getElementById('baseShapePicker');
@@ -560,37 +528,21 @@
       const container = document.getElementById('iconLibrary');
       container.innerHTML = iconLibrary.map((icon, i) => {
         const unlocked = i < 5;
-        return `
-          <div onclick="${unlocked ? `addIconToLayer('${icon}');event.stopImmediatePropagation()` : ''}" 
-               class="text-3xl transition ${unlocked ? 'neon-pink hover:scale-125' : 'text-zinc-600 pointer-events-none'}">
-            <i class="fa-solid ${icon}"></i>
-          </div>`;
+        return `<div onclick="${unlocked ? `addIconToLayer('${icon}');event.stopImmediatePropagation()` : ''}" class="text-3xl transition ${unlocked ? 'neon-pink hover:scale-125' : 'text-zinc-600 pointer-events-none'}"><i class="fa-solid ${icon}"></i></div>`;
       }).join('');
     }
 
     function addIconToLayer(icon) {
       if (currentLayers.length >= 5) return alert("MAX 5 LAYERS");
-      currentLayers.push({
-        icon: icon,
-        color: '#ff00cc',
-        rotate: 0,
-        scale: 1.0,
-        glow: 1,
-        pulse: 1.2,
-        offsetX: 0,
-        offsetY: 0
-      });
+      currentLayers.push({icon: icon, color: '#ff00cc', rotate: 0, scale: 1.0, glow: 1, pulse: 1.2, offsetX: 0, offsetY: 0});
       selectedLayerIndex = currentLayers.length - 1;
       updateLivePreview();
       saveTempAvatar();
     }
 
     function applyGlobalColor(color) {
-      if (selectedLayerIndex >= 0 && currentLayers[selectedLayerIndex]) {
-        currentLayers[selectedLayerIndex].color = color;
-      } else {
-        currentBaseColor = color;
-      }
+      if (selectedLayerIndex >= 0 && currentLayers[selectedLayerIndex]) currentLayers[selectedLayerIndex].color = color;
+      else currentBaseColor = color;
       updateLivePreview();
       saveTempAvatar();
     }
@@ -660,9 +612,7 @@
         saveTempAvatar();
       }
 
-      function endDrag() {
-        isDragging = false;
-      }
+      function endDrag() { isDragging = false; }
 
       preview.addEventListener('mousedown', startDrag);
       preview.addEventListener('mousemove', dragMove);
@@ -674,19 +624,13 @@
       preview.addEventListener('touchend', endDrag);
 
       preview.addEventListener('click', (e) => {
-        if (!wasDragged && selectedLayerIndex >= 0) {
-          cycleLayerScale();
-        }
+        if (!wasDragged && selectedLayerIndex >= 0) cycleLayerScale();
         wasDragged = false;
       });
     }
 
     function saveCustomAvatar() {
-      selectedAvatar = {
-        baseShape: currentBaseShape,
-        baseColor: currentBaseColor,
-        layers: [...currentLayers]
-      };
+      const selectedAvatar = { baseShape: currentBaseShape, baseColor: currentBaseColor, layers: [...currentLayers] };
       localStorage.setItem('selectedAvatar', JSON.stringify(selectedAvatar));
       userAvatar = selectedAvatar;
       hideAvatarCreatorModal();
@@ -705,7 +649,6 @@
 
     function hideImageModal() {
       document.getElementById('imageModal').classList.add('hidden');
-      document.getElementById('modalImage').classList.add('hidden');
     }
 
     function spawnAbyssParticle(intensity = 1) {
@@ -763,18 +706,35 @@
         avatar: userAvatar || FALLBACK_AVATAR
       };
 
+      // OPTIMISTIC LOCAL ADD (pre-avatar-creator stable pattern)
+      posts.unshift(newPost);
+      sortedFeedPosts.unshift(newPost);
+      const container = document.getElementById('feed');
+      container.innerHTML = renderSinglePost(newPost) + container.innerHTML;
+      displayedFeedPosts++;
+
+      // SEND TO SERVER (flat fields to match save.php exactly)
       try {
         await fetch('save.php', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({type: "post", post: newPost})
+          body: JSON.stringify({
+            type: "post",
+            id: newPost.id,
+            name: newPost.name,
+            content: newPost.content,
+            image: newPost.image,
+            avatar: newPost.avatar
+          })
         });
-      } catch(e) {}
+      } catch(e) { console.log("save.php POST failed — but local render kept it alive"); }
 
       hideScreamModal();
       document.getElementById('screamText').value = '';
       document.getElementById('imgUrl').value = '';
-      loadPosts();  // ← RESTORED EXACT PRE-AVATAR-CREATOR BEHAVIOR (no local unshift, full reload after save)
+
+      // DELAYED FULL SYNC (prevents disappear race condition)
+      setTimeout(() => loadPosts(), 900);
     }
 
     function openCommentsModal(postId) {
@@ -836,7 +796,7 @@
       } else {
         document.getElementById('mainContent').style.display = 'flex';
         loadPosts();
-        setInterval(loadPosts, pollRate);
+        setInterval(loadPosts, 6000);
       }
       if (!lastScreamer) lastScreamer = "voidwalker";
     }
