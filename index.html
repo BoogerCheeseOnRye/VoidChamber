@@ -455,7 +455,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – pure dark preview + new tap-to-cycle-scale + atom glow cycler ====================
+    // ==================== AVATAR CREATOR – pure dark preview + tap-to-cycle-scale + atom glow cycler ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -532,7 +532,7 @@
     function cycleGlowIntensity() {
       if (selectedLayerIndex < 0 || !currentLayers[selectedLayerIndex]) return;
       let layer = currentLayers[selectedLayerIndex];
-      layer.glow = ((layer.glow * 2) % 6 + 1) / 2; // cycles 0.5 → 1.0 → 1.5 → 2.0 → 2.5 → 3.0
+      layer.glow = ((layer.glow * 2) % 6 + 1) / 2;
       updateLivePreview();
     }
 
@@ -595,7 +595,6 @@
         isDragging = false;
       }
 
-      // Drag listeners
       preview.addEventListener('mousedown', startDrag);
       preview.addEventListener('mousemove', dragRotate);
       preview.addEventListener('mouseup', endDrag);
@@ -605,7 +604,6 @@
       preview.addEventListener('touchmove', (e) => { e.preventDefault(); dragRotate(e.touches[0]); });
       preview.addEventListener('touchend', endDrag);
 
-      // TAP TO CYCLE SCALE (non-drag)
       preview.addEventListener('click', (e) => {
         if (!wasDragged && selectedLayerIndex >= 0) {
           cycleLayerScale();
@@ -623,6 +621,99 @@
       hideAvatarCreatorModal();
       document.getElementById('mainContent').style.display = 'flex';
       loadPosts();
+    }
+
+    // ==================== RESTORED SCREAM / COMMENTS MODAL FUNCTIONS (from repo commits) ====================
+    function showScreamModal() {
+      if (!lastScreamer) lastScreamer = "voidwalker";
+      document.getElementById('screamName').value = lastScreamer;
+      document.getElementById('screamModal').classList.remove('hidden');
+    }
+
+    function hideScreamModal() {
+      document.getElementById('screamModal').classList.add('hidden');
+    }
+
+    async function screamNow() {
+      const name = document.getElementById('screamName').value.trim() || lastScreamer || "voidwalker";
+      const content = document.getElementById('screamText').value.trim();
+      const image = document.getElementById('imgUrl').value.trim();
+      if (!content) return alert("the void needs something to forget");
+
+      const newPost = {
+        id: Date.now(),
+        name: name,
+        content: content,
+        image: image || null,
+        voteScore: 0,
+        comments: [],
+        avatar: selectedAvatar || null
+      };
+
+      try {
+        await fetch('save.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({type: "post", post: newPost})
+        });
+      } catch(e) {}
+
+      hideScreamModal();
+      document.getElementById('screamText').value = '';
+      document.getElementById('imgUrl').value = '';
+      loadPosts();
+    }
+
+    function openCommentsModal(postId) {
+      currentPostId = postId;
+      const post = posts.find(p => p.id === postId) || sortedFeedPosts.find(p => p.id === postId);
+      if (!post) return;
+
+      document.getElementById('modalPostHeader').textContent = post.name + " SCREAM";
+      document.getElementById('modalCommentCount').innerHTML = `SCREECHES <span class="neon-lime">(${post.comments ? post.comments.length : 0})</span>`;
+      document.getElementById('modalVoteScore').textContent = voteScores[postId] !== undefined ? voteScores[postId] : (post.voteScore || 0);
+      document.getElementById('modalTimestamp').textContent = formatPSTTimestamp(post.id);
+
+      const mediaContainer = document.getElementById('commentsMediaContainer');
+      mediaContainer.innerHTML = post.image ? renderEmbeddedMedia(post.image) : '';
+
+      const list = document.getElementById('commentsList');
+      list.innerHTML = '';
+      if (post.comments && post.comments.length) {
+        post.comments.forEach(c => {
+          list.innerHTML += `<div class="card p-4"><div class="neon-pink">${escapeHtml(c.name)}</div><div>${escapeHtml(c.text)}</div></div>`;
+        });
+      }
+
+      document.getElementById('commentsModal').classList.remove('hidden');
+    }
+
+    function hideCommentsModal() {
+      document.getElementById('commentsModal').classList.add('hidden');
+      currentPostId = null;
+    }
+
+    async function submitModalComment() {
+      const text = document.getElementById('modalCommentText').value.trim();
+      if (!text || !currentPostId) return;
+
+      const comment = {name: lastScreamer || "voidwalker", text: text};
+
+      try {
+        await fetch('save.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({type: "comment", postId: currentPostId, comment: comment})
+        });
+      } catch(e) {}
+
+      document.getElementById('modalCommentText').value = '';
+      openCommentsModal(currentPostId);
+    }
+
+    function addNewLayer() {
+      if (currentLayers.length >= 5) return alert("MAX 5 LAYERS");
+      // placeholder — user picks from library below
     }
 
     function showImageModal(src) {
