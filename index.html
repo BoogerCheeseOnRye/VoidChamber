@@ -19,6 +19,15 @@
       display: none;
     }
 
+    /* PERFECT MOBILE CENTERING + LOCK */
+    html {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100dvh;
+      background: var(--abyss);
+      width: 100%;
+    }
     body { 
       background: var(--abyss); 
       font-family: system-ui, sans-serif; 
@@ -28,7 +37,9 @@
       flex-direction: column; 
       margin: 0 auto;
       max-width: 480px;
+      width: 100%;
       position: relative;
+      box-shadow: 0 0 40px rgba(255,0,204,0.15);
     }
     
     #abyss-fall {
@@ -418,22 +429,20 @@
 
     async function getPSTTimestamp() {
       try {
-        const res = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Los_Angeles', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          return new Date(data.dateTime).getTime();
+        const res = await fetch('save.php');
+        if (!res.ok) throw new Error("void empty");
+        posts = await res.json();
+        const newScreams = posts.length - previousPostCount;
+        if (newScreams >= 10) {
+          pollRate = Math.min(pollRate + 5, 30000);
+          startPolling();
         }
-      } catch(e) {}
-      try {
-        const res = await fetch('https://worldtimeapi.org/api/timezone/America/Los_Angeles', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          return data.unixtime * 1000;
-        }
-      } catch(e) {}
-      const now = new Date();
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      return utc - (8 * 3600000);
+        previousPostCount = posts.length;
+        renderFeed();
+      } catch(e) {
+        console.log("%cvoid swallowed feed — retrying", "color:#ff00cc");
+        if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
+      }
     }
 
     function formatPSTTimestamp(ts) {
