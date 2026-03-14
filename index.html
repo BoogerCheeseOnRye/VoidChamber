@@ -41,7 +41,7 @@
     .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 10px #ff00cc88; transition: all 0.3s ease; position: relative; }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
     .post { transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1); position: relative; }
-    .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 12px; }
+    .void-scream-btn { background: linear-gradient(45deg, #ff00cc, #00ffff); padding: 1.2rem 3rem; border-radius: 9999px; position: fixed; bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem)); left: 50%; transform: translateX(-50%); z-index: 40; box-shadow: 0 8px 25px rgba(255,0,204,0.5); transition: all 0.2s; font-size: 1.25rem; font-weight: bold; }
     .void-scream-btn:hover { transform: translateX(-50%) scale(1.08); }
     .flavor-text { font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; padding: 0.5rem 1rem; background: rgba(0,0,0,0.3); border-top: 1px solid #ff00cc33; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; pointer-events: none; display: block; }
     .image-wrapper { border-radius: 24px; overflow: hidden; border: 3px solid #00ffff66; box-shadow: 0 0 15px #00ffff44; margin: 0.75rem 0; position: relative; }
@@ -184,7 +184,7 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL – restored pre-avatar-creator clean styling -->
+  <!-- COMMENTS MODAL – restored clean pre-avatar-creator styling -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
       <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
@@ -234,9 +234,8 @@
     
     <div id="feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-6 pb-32"></div>
 
-    <!-- SCREAM BUTTON WITH USER AVATAR (populated from save file) -->
-    <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white" id="screamButton">
-      <div id="userAvatarInButton" class="w-9 h-9 rounded-full overflow-hidden flex-shrink-0" style="background:#0a001f"></div>
+    <!-- SCREAM BUTTON – NO VISUAL AVATAR DISPLAY (just text + skull) but avatar is pathed for new screams -->
+    <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
     </button>
 
@@ -248,7 +247,7 @@
     let lastScreamer = localStorage.getItem('lastScreamer') || "";
     let currentPostId = null;
     let selectedAvatar = null;
-    let userAvatar = null; // persistent user avatar for button + new screams
+    let userAvatar = null; // permanent user avatar (pathed to new screams)
     let pollRate = 6000;
     let pollTimer = null;
     let previousPostCount = 0;
@@ -279,6 +278,12 @@
     ];
 
     const glowLevels = [0, 0.2, 0.69, 1, 4.2, 6.66];
+
+    const FALLBACK_AVATAR = {
+      baseShape: 2,
+      baseColor: '#ff0000',
+      layers: [{ icon: 'fa-knife', color: '#000000', rotate: 0, scale: 1.0, glow: 2, pulse: 0.8, offsetX: 0, offsetY: 0 }]
+    };
 
     function isYouTube(url) { return url && (url.includes('youtube.com') || url.includes('youtu.be')); }
     function getYouTubeId(url) {
@@ -393,7 +398,7 @@
     }
 
     function renderSinglePost(p) {
-      const av = p.avatar || {baseShape: 0, baseColor: '#00ffff', layers: []};
+      const av = p.avatar || FALLBACK_AVATAR;
       const effectiveScore = voteScores[p.id] !== undefined ? voteScores[p.id] : (p.voteScore || 0);
       
       let avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background:#0a001f;border-radius:9999px;overflow:hidden;">`;
@@ -478,7 +483,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR + USER AVATAR ON SCREAM BUTTON ====================
+    // ==================== AVATAR SYSTEM – optimized around user avatar (no visual on scream button) ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -496,26 +501,7 @@
 
     function loadUserAvatar() {
       const saved = localStorage.getItem('selectedAvatar') || localStorage.getItem('tempAvatar');
-      if (saved) {
-        userAvatar = JSON.parse(saved);
-        renderUserAvatarInButton();
-      }
-    }
-
-    function renderUserAvatarInButton() {
-      const container = document.getElementById('userAvatarInButton');
-      if (!userAvatar || !container) return;
-      let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;overflow:hidden;">`;
-      const baseIcon = baseShapes[userAvatar.baseShape || 0].icon;
-      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[48px] opacity-30" style="color:${userAvatar.baseColor || '#00ffff'}"></i>`;
-      if (userAvatar.layers && userAvatar.layers.length) {
-        userAvatar.layers.forEach(layer => {
-          const glowPx = (layer.glow || 1) * 12;
-          html += `<i class="fa-solid ${layer.icon}" style="font-size:32px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate || 0}deg) scale(${layer.scale || 1});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};"></i>`;
-        });
-      }
-      html += `</div>`;
-      container.innerHTML = html;
+      userAvatar = saved ? JSON.parse(saved) : FALLBACK_AVATAR;
     }
 
     async function downloadAvatar() {
@@ -708,9 +694,8 @@
         baseColor: currentBaseColor,
         layers: [...currentLayers]
       };
-      localStorage.setItem('selectedAvatar', JSON.stringify(selectedAvatar)); // permanent user avatar
+      localStorage.setItem('selectedAvatar', JSON.stringify(selectedAvatar));
       userAvatar = selectedAvatar;
-      renderUserAvatarInButton();
       hideAvatarCreatorModal();
       document.getElementById('mainContent').style.display = 'flex';
       loadPosts();
@@ -780,7 +765,7 @@
         image: image || null,
         voteScore: 0,
         comments: [],
-        avatar: userAvatar || selectedAvatar || null   // use persistent userAvatar
+        avatar: userAvatar || FALLBACK_AVATAR   // ALWAYS path the user avatar (or fallback)
       };
 
       try {
@@ -850,7 +835,7 @@
 
     function init() {
       startAbyssFall();
-      loadUserAvatar(); // load persistent avatar for scream button
+      loadUserAvatar(); // load the avatar that will be pathed into every new scream
       const onboardingDone = localStorage.getItem('vcOnboardingComplete') === 'true';
       if (!onboardingDone) {
         document.getElementById('ageWarningModal').classList.remove('hidden');
