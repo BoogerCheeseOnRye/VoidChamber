@@ -53,7 +53,7 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* AVATAR CREATOR – pure dark background (no neon ring), pure color orb only */
+    /* AVATAR CREATOR PREVIEW – pure dark background only (no neon ring, no aura, no animated circles) */
     #avatarCreatorModal .preview-container {
       width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border-radius: 9999px; overflow: hidden; cursor: grab;
     }
@@ -102,15 +102,15 @@
     </div>
   </div>
 
-  <!-- CUSTOM AVATAR CREATOR MODAL – pure dark background (no neon ring), pure color orb only -->
+  <!-- CUSTOM AVATAR CREATOR MODAL – pure dark background only (no neon ring, no aura, no animated circles) -->
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
       
-      <!-- LIVE PREVIEW – pure dark background, no neon ring -->
-      <div id="avatarPreview" class="preview-container mb-6 mx-auto relative" style="box-shadow: 0 0 30px #00ffff;"></div>
+      <!-- LIVE PREVIEW – pure dark background only (no ring, no aura) -->
+      <div id="avatarPreview" class="preview-container mb-6 mx-auto relative"></div>
       
-      <!-- SINGLE SOLID COLOR ORB – pure selected color only, no white border/background -->
+      <!-- SINGLE SOLID COLOR ORB – pure selected color only -->
       <div class="absolute top-6 left-6 z-30">
         <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
       </div>
@@ -446,7 +446,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – pure dark background, pure color orb only ====================
+    // ==================== AVATAR CREATOR – pure dark preview (no ring/aura) ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -525,7 +525,7 @@
       let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
       
       const baseIcon = baseShapes[currentBaseShape].icon;
-      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:${currentBaseColor};text-shadow:0 0 30px ${currentBaseColor};"></i>`;
+      html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:${currentBaseColor};"></i>`;
       
       currentLayers.forEach(layer => {
         const glowPx = layer.glow * 25;
