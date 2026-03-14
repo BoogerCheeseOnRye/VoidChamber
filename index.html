@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>VOIDSCREAM</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff00cc">
@@ -26,7 +26,8 @@
       overflow: hidden; 
       display: flex; 
       flex-direction: column; 
-      margin: 0; 
+      margin: 0 auto;
+      max-width: 480px;
       position: relative;
     }
     
@@ -101,9 +102,14 @@
       color: rgba(255,255,255,0.4);
       text-align: center;
       padding: 0.5rem 1rem;
-      flex-shrink: 0;
       background: rgba(0,0,0,0.3);
       border-top: 1px solid #ff00cc33;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      pointer-events: none;
     }
     .image-wrapper {
       border-radius: 24px;
@@ -118,7 +124,6 @@
       max-height: 260px;
       object-fit: contain;
       display: block;
-      cursor: pointer;
     }
     .play-overlay {
       position: absolute;
@@ -147,9 +152,6 @@
       box-shadow: 0 0 32px currentColor;
     }
     .timestamp {
-      position: absolute;
-      bottom: 12px;
-      right: 18px;
       font-size: 11px;
       color: #00ffff;
       text-shadow: 0 0 8px #00ffff;
@@ -177,31 +179,29 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* REFINED MEDIA MODAL – full resolution, no sandbox conflicts */
-    #imageModal .card {
-      max-height: 96vh;
+    /* COMMENTS MODAL – optimized layout with media + voting */
+    #commentsModal .card {
+      max-height: 92vh;
     }
-    #mediaContainer {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    #commentsMediaContainer {
+      padding: 1rem;
       background: #0a001f;
-      overflow: hidden;
-      position: relative;
+      border-bottom: 2px solid #ff00cc33;
     }
-    #modalImage, #modalVideo, #modalIframe {
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
+    #commentsMediaContainer iframe,
+    #commentsMediaContainer video,
+    #commentsMediaContainer img {
+      width: 80%;
       height: auto;
-      object-fit: contain;
+      max-height: 78vh;
+      aspect-ratio: 16 / 9;
+      margin: 0 auto;
+      display: block;
       border: 4px solid #00ffff;
-      border-radius: 24px;
+      border-radius: 16px;
     }
-    #modalVideo, #modalIframe {
-      width: 100% !important;
-      height: 100% !important;
+    #commentsList {
+      padding: 1.25rem;
     }
   </style>
 </head>
@@ -272,16 +272,34 @@
     </div>
   </div>
 
-  <!-- Comments Modal -->
+  <!-- COMMENTS MODAL (SCREECHES) – optimized with media + voting -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
-    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[90vh] flex flex-col">
-      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between">
+    <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between shrink-0">
         <div id="modalPostHeader" class="neon-pink font-bold text-lg"></div>
         <button onclick="hideCommentsModal()" class="text-3xl neon-cyan">X</button>
       </div>
+      
+      <!-- EMBEDDED MEDIA -->
+      <div id="commentsMediaContainer" class="p-5 bg-[#0a001f]"></div>
+      
+      <!-- SEPARATE SCREECHES COUNT (left) + TIMESTAMP (right) at same height with even margins -->
+      <div class="px-5 py-3 border-b border-[#ff00cc]/30 bg-[#1a0033] flex items-center justify-between">
+        <span id="modalCommentCount" class="text-sm neon-cyan">SCREECHES <span class="neon-lime"></span></span>
+        <div id="modalTimestamp" class="timestamp"></div>
+      </div>
+      
+      <!-- VOTING (centered below the aligned line) -->
+      <div class="px-5 py-2 bg-[#1a0033] flex items-center justify-center gap-6">
+        <div onclick="castVoteFromModal(1)" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00] cursor-pointer"></div>
+        <span id="modalVoteScore" class="neon-lime font-mono text-sm"></span>
+        <div onclick="castVoteFromModal(-1)" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] cursor-pointer"></div>
+      </div>
+      
       <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
+      
       <div class="p-5 border-t border-[#ff00cc]/30 bg-[#1a0033]">
-        <div id="commentInputArea" class="flex gap-3">
+        <div class="flex gap-3">
           <input id="modalCommentText" type="text" placeholder="Write a screech or reply..." class="flex-1 bg-[#0f0022] border border-[#ccff00] rounded-3xl px-5 py-3 text-sm neon-lime focus:outline-none">
           <button onclick="submitModalComment()" class="bg-[#ff00cc] hover:bg-[#ff0088] px-7 rounded-3xl font-bold">SCREECH</button>
         </div>
@@ -289,7 +307,7 @@
     </div>
   </div>
 
-  <!-- Media Modal -->
+  <!-- IMAGE-ONLY MEDIA MODAL -->
   <div id="imageModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="hideImageModal()" class="absolute inset-0"></div>
     <div class="card rounded-3xl w-full max-w-[95vw] max-h-[96vh] mx-4 flex flex-col overflow-hidden">
@@ -299,8 +317,6 @@
       </div>
       <div id="mediaContainer" class="flex-1 flex items-center justify-center bg-[#0a001f] overflow-hidden relative p-4" onclick="event.stopImmediatePropagation()">
         <img id="modalImage" src="" class="hidden max-h-full max-w-full object-contain rounded-3xl border-4 border-[#00ffff]" onclick="event.stopImmediatePropagation()">
-        <video id="modalVideo" class="hidden max-h-full max-w-full rounded-3xl border-4 border-[#00ffff]" controls autoplay loop></video>
-        <iframe id="modalIframe" class="hidden w-full h-full rounded-3xl border-4 border-[#00ffff]" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>
       </div>
     </div>
   </div>
@@ -312,7 +328,7 @@
       <p class="neon-cyan text-2xl -mt-1">THE ABYSS FORGETS EVERYTHING</p>
     </div>
     
-    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
+    <div id="feed" class="flex-1 overflow-y-auto p-4 space-y-6 pb-20"></div>
 
     <button onclick="showScreamModal()" class="void-scream-btn flex items-center gap-5 text-white">
       <i class="fa-solid fa-skull"></i> SCREAM
@@ -344,59 +360,35 @@
       {color: '#00ccff', icon: 'fa-crown'}
     ];
 
-    // VIDEO / EMBED HELPERS – YouTube + Google Drive + Vimeo + Direct Video + AAA Gaming
-    function isYouTube(url) {
-      return url && (url.includes('youtube.com') || url.includes('youtu.be'));
-    }
+    function isYouTube(url) { return url && (url.includes('youtube.com') || url.includes('youtu.be')); }
     function getYouTubeId(url) {
       if (!url) return '';
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = url.match(regExp);
       return (match && match[2].length === 11) ? match[2] : '';
     }
-    function getYouTubeThumb(url) {
-      const id = getYouTubeId(url);
-      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
-    }
-    function getYouTubeEmbed(url) {
-      const id = getYouTubeId(url);
-      return id ? `https://www.youtube.com/embed/${id}?autoplay=1&modestbranding=1&rel=0&quality=high` : url;
-    }
+    function getYouTubeThumb(url) { const id = getYouTubeId(url); return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : ''; }
+    function getYouTubeEmbed(url) { const id = getYouTubeId(url); return id ? `https://www.youtube.com/embed/${id}?autoplay=1&modestbranding=1&rel=0&quality=high` : url; }
 
-    function isVimeo(url) {
-      return url && url.includes('vimeo.com');
-    }
-    function getVimeoEmbed(url) {
-      const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
-      return match && match[1] ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&byline=0&portrait=0&title=0` : url;
-    }
+    function isVimeo(url) { return url && url.includes('vimeo.com'); }
+    function getVimeoEmbed(url) { const match = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i); return match && match[1] ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&byline=0&portrait=0&title=0` : url; }
 
-    function isGoogleDriveVideo(url) {
-      return url && url.includes('drive.google.com') && url.includes('/file/d/');
-    }
-    function getGoogleDriveEmbed(url) {
-      const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-      return match && match[1] ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
-    }
+    function isGoogleDriveVideo(url) { return url && url.includes('drive.google.com') && url.includes('/file/d/'); }
+    function getGoogleDriveEmbed(url) { const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/); return match && match[1] ? `https://drive.google.com/file/d/${match[1]}/preview` : url; }
 
-    function isDirectVideo(url) {
-      return url && /\.(mp4|webm|ogg|mov|avi)$/i.test(url);
-    }
+    function isDirectVideo(url) { return url && /\.(mp4|webm|ogg|mov|avi)$/i.test(url); }
+    function isGameLink(url) { return url && url.includes('boogercheeseonrye.github.io/THE.END.OF.AAA.GAMING/game.html'); }
 
-    function isGameLink(url) {
-      return url && url.includes('boogercheeseonrye.github.io/THE.END.OF.AAA.GAMING/game.html');
-    }
-
-    function getMediaPreviewHTML(url) {
+    function getMediaPreviewHTML(url, postId) {
       if (isYouTube(url)) {
         const thumb = getYouTubeThumb(url);
-        return `<div class="image-wrapper relative" onclick="showImageModal('${url}');event.stopImmediatePropagation()">
-          <img src="${thumb}" class="post-image" onerror="this.src='https://i.imgur.com/removed.png'">
+        return `<div class="image-wrapper relative" onclick="openCommentsModal(${postId});event.stopImmediatePropagation()">
+          <img src="${thumb}" class="post-image">
           <div class="play-overlay">▶</div>
         </div>`;
       }
       if (isVimeo(url) || isGoogleDriveVideo(url) || isDirectVideo(url) || isGameLink(url)) {
-        return `<div class="image-wrapper relative" onclick="showImageModal('${url}');event.stopImmediatePropagation()">
+        return `<div class="image-wrapper relative" onclick="openCommentsModal(${postId});event.stopImmediatePropagation()">
           <div class="bg-[#1a0033] h-48 flex items-center justify-center text-6xl neon-cyan">▶</div>
           <div class="play-overlay">▶</div>
         </div>`;
@@ -404,24 +396,41 @@
       return `<div class="image-wrapper"><img src="${url}" class="post-image" onclick="showImageModal('${url}');event.stopImmediatePropagation()"></div>`;
     }
 
+    function renderEmbeddedMedia(src) {
+      if (!src) return '';
+      const lower = src.toLowerCase();
+      const ext = lower.split('.').pop();
+
+      if (['mp4','webm','ogg','mov'].includes(ext)) {
+        return `<video src="${src}" controls autoplay loop class="w-full rounded-3xl border-4 border-[#00ffff]"></video>`;
+      }
+      if (isYouTube(src)) return `<iframe src="${getYouTubeEmbed(src)}" allowfullscreen allow="autoplay" class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
+      if (isVimeo(src)) return `<iframe src="${getVimeoEmbed(src)}" allowfullscreen allow="autoplay" class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
+      if (isGoogleDriveVideo(src)) return `<iframe src="${getGoogleDriveEmbed(src)}" allowfullscreen allow="autoplay" class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
+      if (isGameLink(src)) {
+        let gameUrl = src + (src.includes('?') ? '&' : '?') + 'embed=true';
+        return `<iframe src="${gameUrl}" allowfullscreen allow="autoplay" style="width:80%;height:auto;aspect-ratio:16/9;max-height:78vh;margin:0 auto;display:block;border-radius:16px;border:4px solid #00ffff"></iframe>`;
+      }
+      if (ext === 'html' || lower.includes('.html')) return `<iframe src="${src}" allowfullscreen class="w-full aspect-video rounded-3xl border-4 border-[#00ffff]"></iframe>`;
+      return `<img src="${src}" class="max-w-full rounded-3xl border-4 border-[#00ffff]">`;
+    }
+
     async function getPSTTimestamp() {
       try {
-        const res = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Los_Angeles', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          return new Date(data.dateTime).getTime();
+        const res = await fetch('save.php');
+        if (!res.ok) throw new Error("void empty");
+        posts = await res.json();
+        const newScreams = posts.length - previousPostCount;
+        if (newScreams >= 10) {
+          pollRate = Math.min(pollRate + 5, 30000);
+          startPolling();
         }
-      } catch(e) {}
-      try {
-        const res = await fetch('https://worldtimeapi.org/api/timezone/America/Los_Angeles', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          return data.unixtime * 1000;
-        }
-      } catch(e) {}
-      const now = new Date();
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      return utc - (8 * 3600000);
+        previousPostCount = posts.length;
+        renderFeed();
+      } catch(e) {
+        console.log("%cvoid swallowed feed — retrying", "color:#ff00cc");
+        if (document.getElementById('mainContent').style.display !== 'none') renderEmptyFeed();
+      }
     }
 
     function formatPSTTimestamp(ts) {
@@ -509,7 +518,7 @@
             <div class="neon-pink text-2xl tracking-tight">${escapeHtml(p.name)}</div>
           </div>
           <div class="scream-text">${escapeHtml(p.content)}</div>
-          ${p.image ? getMediaPreviewHTML(p.image) : ''}
+          ${p.image ? getMediaPreviewHTML(p.image, p.id) : ''}
           
           <div class="vote-overlay">
             <i onclick="castVote(${p.id}, 1);event.stopImmediatePropagation()" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00]"></i>
@@ -518,9 +527,11 @@
           </div>
 
           <div onclick="openCommentsModal(${p.id})" class="mt-6 pt-5 border-t border-[#ff00cc]/30 flex items-center justify-between cursor-pointer hover:bg-[#ff00cc]/10 rounded-xl p-3 -mx-3">
-            <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
+            <div class="flex items-center gap-3">
+              <div class="text-sm neon-cyan">SCREECHES <span class="neon-lime">(${p.comments ? p.comments.length : 0})</span></div>
+              <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
+            </div>
           </div>
-          <div class="timestamp">${formatPSTTimestamp(p.id)}</div>
         </div>`;
     }
 
@@ -559,6 +570,12 @@
           renderFeed();
         }, 600);
       }
+    }
+
+    function castVoteFromModal(direction) {
+      if (!currentPostId) return;
+      castVote(currentPostId, direction);
+      setTimeout(() => openCommentsModal(currentPostId), 400);
     }
 
     function refreshFeedAndScroll() {
@@ -631,8 +648,16 @@
       currentPostId = id;
       const post = posts.find(p => p.id === id);
       if (!post) return;
+
       document.getElementById('commentsModal').classList.remove('hidden');
       document.getElementById('modalPostHeader').innerHTML = `${escapeHtml(post.name)}'s SCREAM`;
+      document.getElementById('commentsMediaContainer').innerHTML = post.image ? renderEmbeddedMedia(post.image) : '';
+      
+      const effectiveScore = voteScores[post.id] !== undefined ? voteScores[post.id] : (post.voteScore || 0);
+      document.getElementById('modalVoteScore').textContent = effectiveScore;
+      document.getElementById('modalTimestamp').innerHTML = formatPSTTimestamp(post.id);
+      document.getElementById('modalCommentCount').innerHTML = `SCREECHES <span class="neon-lime">(${post.comments ? post.comments.length : 0})</span>`;
+
       const list = document.getElementById('commentsList');
       list.innerHTML = (post.comments || []).map(c => `
         <div class="bg-[#0f0022] rounded-2xl p-4">
@@ -643,10 +668,13 @@
         </div>
       `).join('');
     }
+
     function hideCommentsModal() {
       document.getElementById('commentsModal').classList.add('hidden');
       currentPostId = null;
+      document.getElementById('commentsMediaContainer').innerHTML = '';
     }
+
     async function submitModalComment() {
       const text = document.getElementById('modalCommentText').value.trim();
       if (!text || !currentPostId) return;
@@ -661,75 +689,20 @@
       const modal = document.getElementById('imageModal');
       const container = document.getElementById('mediaContainer');
       const imgEl = document.getElementById('modalImage');
-      const videoEl = document.getElementById('modalVideo');
-      const iframeEl = document.getElementById('modalIframe');
 
       imgEl.classList.add('hidden');
-      videoEl.classList.add('hidden');
-      iframeEl.classList.add('hidden');
       imgEl.src = '';
-      videoEl.src = '';
-      iframeEl.src = '';
 
       modal.classList.remove('hidden');
-
-      const lowerSrc = src.toLowerCase();
-      const ext = lowerSrc.split('.').pop();
-
-      if (['mp4','webm','ogg','mov'].includes(ext)) {
-        videoEl.src = src;
-        videoEl.classList.remove('hidden');
-        videoEl.style.width = '100%';
-        videoEl.style.height = '100%';
-        videoEl.play().catch(()=>{});
-      } else if (isYouTube(src)) {
-        iframeEl.src = getYouTubeEmbed(src);
-        iframeEl.classList.remove('hidden');
-        iframeEl.style.width = '100%';
-        iframeEl.style.height = '100%';
-      } else if (isVimeo(src)) {
-        iframeEl.src = getVimeoEmbed(src);
-        iframeEl.classList.remove('hidden');
-        iframeEl.style.width = '100%';
-        iframeEl.style.height = '100%';
-      } else if (isGoogleDriveVideo(src)) {
-        iframeEl.src = getGoogleDriveEmbed(src);
-        iframeEl.classList.remove('hidden');
-        iframeEl.style.width = '100%';
-        iframeEl.style.height = '100%';
-      } else if (isGameLink(src)) {
-        // GAME LINK NOW DEFAULTS TO 85% VIEWPORT SIZE (perfect for 1920x1080 TV when you zoom out the browser)
-        iframeEl.src = src;
-        iframeEl.classList.remove('hidden');
-        iframeEl.style.width = '85%';
-        iframeEl.style.height = 'auto';
-        iframeEl.style.maxHeight = '82vh';
-        iframeEl.style.aspectRatio = '16 / 9';
-      } else if (ext === 'html' || ext === 'htm' || lowerSrc.includes('.html')) {
-        iframeEl.src = src;
-        iframeEl.classList.remove('hidden');
-        iframeEl.style.width = '100%';
-        iframeEl.style.height = '100%';
-      } else {
-        imgEl.src = src;
-        imgEl.classList.remove('hidden');
-      }
+      imgEl.src = src;
+      imgEl.classList.remove('hidden');
     }
 
     function hideImageModal() {
       const modal = document.getElementById('imageModal');
       const imgEl = document.getElementById('modalImage');
-      const videoEl = document.getElementById('modalVideo');
-      const iframeEl = document.getElementById('modalIframe');
-
-      videoEl.pause();
-      videoEl.src = '';
-      iframeEl.src = '';
 
       imgEl.classList.add('hidden');
-      videoEl.classList.add('hidden');
-      iframeEl.classList.add('hidden');
-
       modal.classList.add('hidden');
     }
 
