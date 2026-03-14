@@ -66,6 +66,7 @@
     @keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @keyframes avatarBreathGlow { 0% { text-shadow: 0 0 15px currentColor; } 100% { text-shadow: 0 0 35px currentColor; } }
 
+    /* RESTORED COMMENTS MODAL STYLING – exact pre-avatar-creator state (full-bleed header, clean card screeches, classic positioning) */
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
     #commentsMediaContainer { padding: 1rem; background: #0a001f; border-bottom: 2px solid #ff00cc33; flex-shrink: 0; }
@@ -107,7 +108,7 @@
     </div>
   </div>
 
-  <!-- AVATAR DOWNLOAD MODAL – nasty dark humor + anonymity defense -->
+  <!-- AVATAR DOWNLOAD MODAL -->
   <div id="avatarDownloadModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[210]">
     <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
       <div class="text-6xl mb-6 neon-pink">☠️</div>
@@ -134,7 +135,7 @@
         <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
       </div>
       
-      <!-- GLOW CYCLE -->
+      <!-- GLOW CYCLE – silent levels -->
       <div onclick="cycleGlowIntensity();event.stopImmediatePropagation()" class="absolute top-6 right-6 z-30 cursor-pointer text-4xl neon-cyan">
         <i class="fa-solid fa-atom"></i>
       </div>
@@ -183,7 +184,7 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL -->
+  <!-- COMMENTS MODAL – RESTORED TO PRE-AVATAR-CREATOR STYLING (clean scream-feed matching cards, full-bleed header, classic positioning) -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[94vh] flex flex-col overflow-hidden">
       <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-[15px]">
@@ -273,6 +274,8 @@
       'fa-chess-knight','fa-dungeon','fa-gem','fa-scroll','fa-spider','fa-bug','fa-bacteria','fa-atom',
       'fa-meteor','fa-comet','fa-moon','fa-star','fa-solar-panel','fa-screwdriver','fa-wrench','fa-hammer'
     ];
+
+    const glowLevels = [0, 0.2, 0.69, 1, 4.2, 6.66];
 
     function isYouTube(url) { return url && (url.includes('youtube.com') || url.includes('youtu.be')); }
     function getYouTubeId(url) {
@@ -393,7 +396,8 @@
       let avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background:#0a001f;border-radius:9999px;overflow:hidden;">`;
       if (av.layers && av.layers.length) {
         av.layers.forEach(layer => {
-          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});font-size:80px;text-shadow:0 0 ${layer.glow*20}px ${layer.color};animation:avatarBreathGlow ${layer.pulse}s infinite alternate;"></i>`;
+          const offsetStyle = `translate(calc(-50% + ${layer.offsetX || 0}px), calc(-50% + ${layer.offsetY || 0}px))`;
+          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color};transform:${offsetStyle} rotate(${layer.rotate || 0}deg) scale(${layer.scale || 1});font-size:80px;text-shadow:0 0 ${(layer.glow || 1)*25}px ${layer.color};animation:avatarBreathGlow ${(layer.pulse || 1.2)}s infinite alternate;"></i>`;
         });
       } else {
         avatarHTML += `<i class="fa-solid fa-skull" style="font-size:80px;color:#ff00cc;text-shadow:0 0 20px #ff00cc;"></i>`;
@@ -471,7 +475,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR + TEMPORARY SAVE + DOWNLOAD FEATURE ====================
+    // ==================== AVATAR CREATOR – restored modal styling everywhere else ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -490,15 +494,12 @@
     async function downloadAvatar() {
       const preview = document.getElementById('avatarPreview');
       if (!preview) return;
-
       try {
         const canvas = await html2canvas(preview, { backgroundColor: '#0a001f', scale: 2 });
         const link = document.createElement('a');
         link.download = `void-avatar-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-
-        // Show nasty dark humor modal
         document.getElementById('avatarDownloadModal').classList.remove('hidden');
       } catch(e) {
         alert("The void refused to spit out your shadow this time. Try again.");
@@ -511,7 +512,6 @@
 
     function showAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.remove('hidden');
-      
       const saved = localStorage.getItem('tempAvatar');
       if (saved) {
         const data = JSON.parse(saved);
@@ -523,7 +523,6 @@
         currentBaseShape = 0;
         currentBaseColor = '#00ffff';
       }
-      
       selectedLayerIndex = currentLayers.length > 0 ? 0 : -1;
       renderBaseShapePicker();
       renderIconLibrary();
@@ -570,8 +569,10 @@
         color: '#ff00cc',
         rotate: 0,
         scale: 1.0,
-        glow: 1.5,
-        pulse: 1.2
+        glow: 1,
+        pulse: 1.2,
+        offsetX: 0,
+        offsetY: 0
       });
       selectedLayerIndex = currentLayers.length - 1;
       updateLivePreview();
@@ -591,7 +592,9 @@
     function cycleGlowIntensity() {
       if (selectedLayerIndex < 0 || !currentLayers[selectedLayerIndex]) return;
       let layer = currentLayers[selectedLayerIndex];
-      layer.glow = ((layer.glow * 2) % 6 + 1) / 2;
+      let idx = glowLevels.findIndex(v => Math.abs(v - layer.glow) < 0.01);
+      if (idx === -1) idx = 0;
+      layer.glow = glowLevels[(idx + 1) % glowLevels.length];
       updateLivePreview();
       saveTempAvatar();
     }
@@ -608,14 +611,13 @@
     function updateLivePreview() {
       const preview = document.getElementById('avatarPreview');
       let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
-      
       const baseIcon = baseShapes[currentBaseShape].icon;
       html += `<i class="fa-solid ${baseIcon} absolute inset-0 flex items-center justify-center text-[140px] opacity-30" style="color:${currentBaseColor};"></i>`;
-      
       currentLayers.forEach(layer => {
-        const glowPx = layer.glow * 25;
+        const glowPx = (layer.glow || 1) * 25;
         const pulseStyle = layer.pulse > 0 ? `animation:avatarBreathGlow ${layer.pulse}s infinite alternate` : '';
-        html += `<i class="fa-solid ${layer.icon} avatar-layer" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
+        const offsetStyle = `translate(calc(-50% + ${(layer.offsetX || 0)}px), calc(-50% + ${(layer.offsetY || 0)}px))`;
+        html += `<i class="fa-solid ${layer.icon} avatar-layer" style="font-size:80px;color:${layer.color};transform:${offsetStyle} rotate(${layer.rotate || 0}deg) scale(${layer.scale || 1});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
       });
       html += `</div>`;
       preview.innerHTML = html;
@@ -623,7 +625,7 @@
 
     function attachPreviewDrag() {
       const preview = document.getElementById('avatarPreview');
-      let startX, startY, startRotate;
+      let startX, startY;
 
       function startDrag(e) {
         if (selectedLayerIndex === -1) return;
@@ -632,23 +634,22 @@
         const rect = preview.getBoundingClientRect();
         startX = e.clientX - rect.left;
         startY = e.clientY - rect.top;
-        startRotate = currentLayers[selectedLayerIndex].rotate;
       }
 
-      function dragRotate(e) {
+      function dragMove(e) {
         if (!isDragging) return;
         wasDragged = true;
         const rect = preview.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
         const currentX = e.clientX - rect.left;
         const currentY = e.clientY - rect.top;
-
-        const startAngle = Math.atan2(startY - centerY, startX - centerX) * (180 / Math.PI);
-        const currentAngle = Math.atan2(currentY - centerY, currentX - centerX) * (180 / Math.PI);
-
-        let delta = currentAngle - startAngle;
-        currentLayers[selectedLayerIndex].rotate = (startRotate + delta + 360) % 360;
+        const dx = currentX - startX;
+        const dy = currentY - startY;
+        let layer = currentLayers[selectedLayerIndex];
+        layer.offsetX = (layer.offsetX || 0) + dx * 0.8;
+        layer.offsetY = (layer.offsetY || 0) + dy * 0.8;
+        const maxOffset = 60;
+        layer.offsetX = Math.max(-maxOffset, Math.min(maxOffset, layer.offsetX));
+        layer.offsetY = Math.max(-maxOffset, Math.min(maxOffset, layer.offsetY));
         updateLivePreview();
         saveTempAvatar();
       }
@@ -658,12 +659,12 @@
       }
 
       preview.addEventListener('mousedown', startDrag);
-      preview.addEventListener('mousemove', dragRotate);
+      preview.addEventListener('mousemove', dragMove);
       preview.addEventListener('mouseup', endDrag);
       preview.addEventListener('mouseleave', endDrag);
 
       preview.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(e.touches[0]); });
-      preview.addEventListener('touchmove', (e) => { e.preventDefault(); dragRotate(e.touches[0]); });
+      preview.addEventListener('touchmove', (e) => { e.preventDefault(); dragMove(e.touches[0]); });
       preview.addEventListener('touchend', endDrag);
 
       preview.addEventListener('click', (e) => {
