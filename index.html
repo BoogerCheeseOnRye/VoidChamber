@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#ff00cc">
   <link rel="apple-touch-icon" href="icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     :root { --abyss: #0a001f; }
@@ -53,7 +54,7 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* AVATAR CREATOR PREVIEW – pure dark background only (no neon ring, no aura) + animation effects */
+    /* AVATAR CREATOR PREVIEW – pure dark background only + animation effects */
     #avatarCreatorModal .preview-container {
       width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border-radius: 9999px; overflow: hidden; cursor: grab;
       animation: avatarFloat 6s ease-in-out infinite;
@@ -106,20 +107,34 @@
     </div>
   </div>
 
+  <!-- AVATAR DOWNLOAD MODAL – nasty dark humor + anonymity defense -->
+  <div id="avatarDownloadModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[210]">
+    <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
+      <div class="text-6xl mb-6 neon-pink">☠️</div>
+      <h2 class="neon-pink text-4xl font-black tracking-[-3px]">THE VOID JUST SPAT OUT YOUR FACE</h2>
+      <p class="neon-cyan text-lg mt-6 leading-tight">Here's your temporary scream shadow.<br>Drop this PNG anywhere the abyss can find it next time you scream.<br><br>
+      <span class="text-[#ff0088]">We didn't ask the feds. We didn't ask your mom. We didn't ask anyone.</span><br>
+      Your face stays between you and the void. Anonymity is sacred here — the abyss forgets everything, including your real name.</p>
+      <div class="mt-8 flex gap-4">
+        <button onclick="hideAvatarDownloadModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">I UNDERSTAND — THE VOID SEES NOTHING</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CUSTOM AVATAR CREATOR MODAL -->
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
       
-      <!-- LIVE PREVIEW – pure dark background only + animation effects + tap-to-cycle-scale -->
+      <!-- LIVE PREVIEW -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative"></div>
       
-      <!-- SINGLE SOLID COLOR ORB – pure selected color only -->
+      <!-- SINGLE SOLID COLOR ORB -->
       <div class="absolute top-6 left-6 z-30">
         <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
       </div>
       
-      <!-- GLOW CYCLE – isotope/atom symbol upper right (no words) -->
+      <!-- GLOW CYCLE -->
       <div onclick="cycleGlowIntensity();event.stopImmediatePropagation()" class="absolute top-6 right-6 z-30 cursor-pointer text-4xl neon-cyan">
         <i class="fa-solid fa-atom"></i>
       </div>
@@ -130,7 +145,7 @@
         <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
       </div>
       
-      <!-- LAYERS UI – stripped to header + add button only -->
+      <!-- LAYERS UI -->
       <div class="mb-4">
         <div class="flex justify-between items-center">
           <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
@@ -138,7 +153,7 @@
         </div>
       </div>
       
-      <!-- ICON LIBRARY – first 5 unlocked, rest grayed -->
+      <!-- ICON LIBRARY -->
       <div class="mb-4">
         <div class="neon-cyan text-sm font-medium tracking-widest mb-2">PICK ICON (FIRST 5 UNLOCKED)</div>
         <div id="iconLibrary" class="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 bg-[#0f0022] rounded-2xl"></div>
@@ -146,6 +161,7 @@
       
       <div class="flex gap-4 mt-auto">
         <button onclick="hideAvatarCreatorModal()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">CANCEL</button>
+        <button onclick="downloadAvatar()" class="flex-1 py-6 bg-[#00ffff] text-[#0a001f] font-black text-lg rounded-3xl">DOWNLOAD SHADOW</button>
         <button onclick="saveCustomAvatar()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">FORGE AVATAR</button>
       </div>
     </div>
@@ -455,7 +471,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – pure dark preview + tap-to-cycle-scale + atom glow cycler ====================
+    // ==================== AVATAR CREATOR + TEMPORARY SAVE + DOWNLOAD FEATURE ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -463,12 +479,52 @@
     let isDragging = false;
     let wasDragged = false;
 
+    function saveTempAvatar() {
+      localStorage.setItem('tempAvatar', JSON.stringify({
+        baseShape: currentBaseShape,
+        baseColor: currentBaseColor,
+        layers: currentLayers
+      }));
+    }
+
+    async function downloadAvatar() {
+      const preview = document.getElementById('avatarPreview');
+      if (!preview) return;
+
+      try {
+        const canvas = await html2canvas(preview, { backgroundColor: '#0a001f', scale: 2 });
+        const link = document.createElement('a');
+        link.download = `void-avatar-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        // Show nasty dark humor modal
+        document.getElementById('avatarDownloadModal').classList.remove('hidden');
+      } catch(e) {
+        alert("The void refused to spit out your shadow this time. Try again.");
+      }
+    }
+
+    function hideAvatarDownloadModal() {
+      document.getElementById('avatarDownloadModal').classList.add('hidden');
+    }
+
     function showAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.remove('hidden');
-      currentLayers = [];
-      currentBaseShape = 0;
-      currentBaseColor = '#00ffff';
-      selectedLayerIndex = -1;
+      
+      const saved = localStorage.getItem('tempAvatar');
+      if (saved) {
+        const data = JSON.parse(saved);
+        currentBaseShape = data.baseShape || 0;
+        currentBaseColor = data.baseColor || '#00ffff';
+        currentLayers = data.layers || [];
+      } else {
+        currentLayers = [];
+        currentBaseShape = 0;
+        currentBaseColor = '#00ffff';
+      }
+      
+      selectedLayerIndex = currentLayers.length > 0 ? 0 : -1;
       renderBaseShapePicker();
       renderIconLibrary();
       updateLivePreview();
@@ -492,6 +548,7 @@
       currentBaseShape = i;
       renderBaseShapePicker();
       updateLivePreview();
+      saveTempAvatar();
     }
 
     function renderIconLibrary() {
@@ -518,6 +575,7 @@
       });
       selectedLayerIndex = currentLayers.length - 1;
       updateLivePreview();
+      saveTempAvatar();
     }
 
     function applyGlobalColor(color) {
@@ -527,6 +585,7 @@
         currentBaseColor = color;
       }
       updateLivePreview();
+      saveTempAvatar();
     }
 
     function cycleGlowIntensity() {
@@ -534,6 +593,7 @@
       let layer = currentLayers[selectedLayerIndex];
       layer.glow = ((layer.glow * 2) % 6 + 1) / 2;
       updateLivePreview();
+      saveTempAvatar();
     }
 
     function cycleLayerScale() {
@@ -542,6 +602,7 @@
       layer.scale += 0.05;
       if (layer.scale > 2.0) layer.scale = 0.05;
       updateLivePreview();
+      saveTempAvatar();
     }
 
     function updateLivePreview() {
@@ -589,6 +650,7 @@
         let delta = currentAngle - startAngle;
         currentLayers[selectedLayerIndex].rotate = (startRotate + delta + 360) % 360;
         updateLivePreview();
+        saveTempAvatar();
       }
 
       function endDrag() {
@@ -623,7 +685,47 @@
       loadPosts();
     }
 
-    // ==================== RESTORED SCREAM / COMMENTS MODAL FUNCTIONS (from repo commits) ====================
+    function showImageModal(src) {
+      const modal = document.getElementById('imageModal');
+      const imgEl = document.getElementById('modalImage');
+      imgEl.classList.add('hidden');
+      modal.classList.remove('hidden');
+      imgEl.src = src;
+      imgEl.classList.remove('hidden');
+    }
+
+    function hideImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+      document.getElementById('modalImage').classList.add('hidden');
+    }
+
+    function spawnAbyssParticle(intensity = 1) {
+      const fallLayer = document.getElementById('abyss-fall');
+      for (let i = 0; i < 4 * intensity; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'falling';
+        const icons = ['☠️','👁️','🌀','⚡','🔥','🌑','AHH','VOID','SCREAM','💀','✧','🕳️'];
+        particle.textContent = icons[Math.floor(Math.random()*icons.length)];
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.animationDuration = (Math.random() * 9 + 6) + 's';
+        particle.style.animationDelay = '-' + (Math.random() * 15) + 's';
+        particle.style.opacity = Math.random() * 0.25 + 0.07;
+        particle.style.fontSize = (Math.random() * 22 + 16) + 'px';
+        fallLayer.appendChild(particle);
+        setTimeout(() => particle.remove(), 22000);
+      }
+    }
+
+    function startAbyssFall() {
+      setInterval(() => spawnAbyssParticle(1), 380);
+      const feed = document.getElementById('feed');
+      feed.addEventListener('scroll', () => {
+        if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 200 && displayedFeedPosts < sortedFeedPosts.length) {
+          appendFeedBatch(8);
+        }
+      });
+    }
+
     function showScreamModal() {
       if (!lastScreamer) lastScreamer = "voidwalker";
       document.getElementById('screamName').value = lastScreamer;
@@ -713,55 +815,6 @@
 
     function addNewLayer() {
       if (currentLayers.length >= 5) return alert("MAX 5 LAYERS");
-      // placeholder — user picks from library below
-    }
-
-    function showImageModal(src) {
-      const modal = document.getElementById('imageModal');
-      const imgEl = document.getElementById('modalImage');
-      imgEl.classList.add('hidden');
-      modal.classList.remove('hidden');
-      imgEl.src = src;
-      imgEl.classList.remove('hidden');
-    }
-
-    function hideImageModal() {
-      document.getElementById('imageModal').classList.add('hidden');
-      document.getElementById('modalImage').classList.add('hidden');
-    }
-
-    function spawnAbyssParticle(intensity = 1) {
-      const fallLayer = document.getElementById('abyss-fall');
-      for (let i = 0; i < 4 * intensity; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'falling';
-        const icons = ['☠️','👁️','🌀','⚡','🔥','🌑','AHH','VOID','SCREAM','💀','✧','🕳️'];
-        particle.textContent = icons[Math.floor(Math.random()*icons.length)];
-        particle.style.left = Math.random() * 100 + 'vw';
-        particle.style.animationDuration = (Math.random() * 9 + 6) + 's';
-        particle.style.animationDelay = '-' + (Math.random() * 15) + 's';
-        particle.style.opacity = Math.random() * 0.25 + 0.07;
-        particle.style.fontSize = (Math.random() * 22 + 16) + 'px';
-        fallLayer.appendChild(particle);
-        setTimeout(() => particle.remove(), 22000);
-      }
-    }
-
-    function startAbyssFall() {
-      setInterval(() => spawnAbyssParticle(1), 380);
-      const feed = document.getElementById('feed');
-      feed.addEventListener('scroll', () => {
-        if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 200 && displayedFeedPosts < sortedFeedPosts.length) {
-          appendFeedBatch(8);
-        }
-      });
-    }
-
-    async function saveNewPost(newPost) {
-      try {
-        await fetch('save.php', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newPost)});
-        loadPosts();
-      } catch(e) {}
     }
 
     function init() {
