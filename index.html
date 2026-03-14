@@ -53,13 +53,17 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* AVATAR CREATOR PREVIEW – pure dark background only (no neon ring, no aura, no animated circles) */
+    /* AVATAR CREATOR PREVIEW – pure dark background only (no neon ring, no aura) + animation effects */
     #avatarCreatorModal .preview-container {
       width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border-radius: 9999px; overflow: hidden; cursor: grab;
+      animation: avatarFloat 6s ease-in-out infinite;
     }
     .avatar-layer {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: all 0.1s linear; user-select: none;
+      animation: avatarBreathGlow 3s ease-in-out infinite alternate;
     }
+    @keyframes avatarFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes avatarBreathGlow { 0% { text-shadow: 0 0 15px currentColor; } 100% { text-shadow: 0 0 35px currentColor; } }
 
     #commentsModal .card { max-height: 94vh; }
     #commentsHeader { padding: 1.35rem 1rem; border-bottom: 2px solid #ff00cc; background: #1a0033; margin-left: -15px; margin-right: -15px; position: relative; z-index: 10; }
@@ -102,12 +106,12 @@
     </div>
   </div>
 
-  <!-- CUSTOM AVATAR CREATOR MODAL – pure dark background only (no neon ring, no aura, no animated circles) -->
+  <!-- CUSTOM AVATAR CREATOR MODAL -->
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
       
-      <!-- LIVE PREVIEW – pure dark background only (no ring, no aura) -->
+      <!-- LIVE PREVIEW – pure dark background only (no neon ring, no aura) + animation effects -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative"></div>
       
       <!-- SINGLE SOLID COLOR ORB – pure selected color only -->
@@ -368,7 +372,7 @@
       let avatarHTML = `<div class="relative w-12 h-12 mx-auto" style="background:#0a001f;border-radius:9999px;overflow:hidden;">`;
       if (av.layers && av.layers.length) {
         av.layers.forEach(layer => {
-          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});font-size:80px;text-shadow:0 0 ${layer.glow*20}px ${layer.color};animation:avatarPulse ${layer.pulse}s infinite alternate;"></i>`;
+          avatarHTML += `<i class="fa-solid ${layer.icon} avatar-layer" style="color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});font-size:80px;text-shadow:0 0 ${layer.glow*20}px ${layer.color};animation:avatarBreathGlow ${layer.pulse}s infinite alternate;"></i>`;
         });
       } else {
         avatarHTML += `<i class="fa-solid fa-skull" style="font-size:80px;color:#ff00cc;text-shadow:0 0 20px #ff00cc;"></i>`;
@@ -446,7 +450,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – pure dark preview (no ring/aura) ====================
+    // ==================== AVATAR CREATOR – pure dark preview + animation effects ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
@@ -529,7 +533,7 @@
       
       currentLayers.forEach(layer => {
         const glowPx = layer.glow * 25;
-        const pulseStyle = layer.pulse > 0 ? `animation:avatarPulse ${layer.pulse}s infinite alternate` : '';
+        const pulseStyle = layer.pulse > 0 ? `animation:avatarBreathGlow ${layer.pulse}s infinite alternate` : '';
         html += `<i class="fa-solid ${layer.icon} avatar-layer" style="font-size:80px;color:${layer.color};transform:translate(-50%,-50%) rotate(${layer.rotate}deg) scale(${layer.scale});top:50%;left:50%;text-shadow:0 0 ${glowPx}px ${layer.color};${pulseStyle}"></i>`;
       });
       html += `</div>`;
