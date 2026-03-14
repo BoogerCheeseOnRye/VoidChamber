@@ -53,9 +53,9 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* AVATAR CREATOR – one solid color orb in upper left, zero layer UI except header + add button */
+    /* AVATAR CREATOR – pure dark background (no neon ring), pure color orb only */
     #avatarCreatorModal .preview-container {
-      width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border: 4px solid #00ffff; border-radius: 9999px; overflow: hidden; cursor: grab;
+      width: 180px; height: 180px; position: relative; margin: 0 auto; background: #0a001f; border-radius: 9999px; overflow: hidden; cursor: grab;
     }
     .avatar-layer {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; transition: all 0.1s linear; user-select: none;
@@ -102,17 +102,17 @@
     </div>
   </div>
 
-  <!-- CUSTOM AVATAR CREATOR MODAL – exactly as requested (one orb upper left, layers UI stripped to header + add button only) -->
+  <!-- CUSTOM AVATAR CREATOR MODAL – pure dark background (no neon ring), pure color orb only -->
   <div id="avatarCreatorModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
       
-      <!-- LIVE PREVIEW – drag to rotate last layer -->
+      <!-- LIVE PREVIEW – pure dark background, no neon ring -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative" style="box-shadow: 0 0 30px #00ffff;"></div>
       
-      <!-- SINGLE SOLID COLOR ORB – upper left corner only -->
+      <!-- SINGLE SOLID COLOR ORB – pure selected color only, no white border/background -->
       <div class="absolute top-6 left-6 z-30">
-        <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 border-4 border-white rounded-full cursor-pointer shadow-[0_0_20px_#ff00cc]">
+        <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
       </div>
       
       <!-- BASE SHAPE -->
@@ -121,7 +121,7 @@
         <div id="baseShapePicker" class="flex gap-3 justify-center"></div>
       </div>
       
-      <!-- LAYERS UI – STRIPPED TO ONLY HEADER TEXT + ADD BUTTON (no per-layer anything) -->
+      <!-- LAYERS UI – stripped to header + add button only -->
       <div class="mb-4">
         <div class="flex justify-between items-center">
           <div class="neon-pink text-sm font-medium tracking-widest">LAYERS (MAX 5)</div>
@@ -446,7 +446,7 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – EXACTLY AS REQUESTED ====================
+    // ==================== AVATAR CREATOR – pure dark background, pure color orb only ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
