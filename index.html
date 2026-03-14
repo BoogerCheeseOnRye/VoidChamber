@@ -111,12 +111,17 @@
     <div class="card rounded-3xl p-6 w-full max-w-lg mx-4 max-h-[92vh] overflow-hidden flex flex-col">
       <div class="neon-lime text-2xl font-black tracking-widest text-center mb-4">VOID AVATAR FORGE</div>
       
-      <!-- LIVE PREVIEW – pure dark background only (no neon ring, no aura) + animation effects -->
+      <!-- LIVE PREVIEW – pure dark background only + animation effects + tap-to-cycle-scale -->
       <div id="avatarPreview" class="preview-container mb-6 mx-auto relative"></div>
       
       <!-- SINGLE SOLID COLOR ORB – pure selected color only -->
       <div class="absolute top-6 left-6 z-30">
         <input type="color" id="globalColorPicker" value="#ff00cc" onchange="applyGlobalColor(this.value)" class="w-14 h-14 rounded-full cursor-pointer">
+      </div>
+      
+      <!-- GLOW CYCLE – isotope/atom symbol upper right (no words) -->
+      <div onclick="cycleGlowIntensity();event.stopImmediatePropagation()" class="absolute top-6 right-6 z-30 cursor-pointer text-4xl neon-cyan">
+        <i class="fa-solid fa-atom"></i>
       </div>
       
       <!-- BASE SHAPE -->
@@ -450,13 +455,13 @@
       showAvatarCreatorModal();
     }
 
-    // ==================== AVATAR CREATOR – pure dark preview + animation effects ====================
+    // ==================== AVATAR CREATOR – pure dark preview + new tap-to-cycle-scale + atom glow cycler ====================
     let currentLayers = [];
     let currentBaseShape = 0;
     let currentBaseColor = '#00ffff';
     let selectedLayerIndex = -1;
-
     let isDragging = false;
+    let wasDragged = false;
 
     function showAvatarCreatorModal() {
       document.getElementById('avatarCreatorModal').classList.remove('hidden');
@@ -524,6 +529,21 @@
       updateLivePreview();
     }
 
+    function cycleGlowIntensity() {
+      if (selectedLayerIndex < 0 || !currentLayers[selectedLayerIndex]) return;
+      let layer = currentLayers[selectedLayerIndex];
+      layer.glow = ((layer.glow * 2) % 6 + 1) / 2; // cycles 0.5 → 1.0 → 1.5 → 2.0 → 2.5 → 3.0
+      updateLivePreview();
+    }
+
+    function cycleLayerScale() {
+      if (selectedLayerIndex < 0 || !currentLayers[selectedLayerIndex]) return;
+      let layer = currentLayers[selectedLayerIndex];
+      layer.scale += 0.05;
+      if (layer.scale > 2.0) layer.scale = 0.05;
+      updateLivePreview();
+    }
+
     function updateLivePreview() {
       const preview = document.getElementById('avatarPreview');
       let html = `<div style="position:relative;width:100%;height:100%;background:#0a001f;border-radius:9999px;">`;
@@ -547,6 +567,7 @@
       function startDrag(e) {
         if (selectedLayerIndex === -1) return;
         isDragging = true;
+        wasDragged = false;
         const rect = preview.getBoundingClientRect();
         startX = e.clientX - rect.left;
         startY = e.clientY - rect.top;
@@ -555,6 +576,7 @@
 
       function dragRotate(e) {
         if (!isDragging) return;
+        wasDragged = true;
         const rect = preview.getBoundingClientRect();
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
@@ -573,6 +595,7 @@
         isDragging = false;
       }
 
+      // Drag listeners
       preview.addEventListener('mousedown', startDrag);
       preview.addEventListener('mousemove', dragRotate);
       preview.addEventListener('mouseup', endDrag);
@@ -581,6 +604,14 @@
       preview.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(e.touches[0]); });
       preview.addEventListener('touchmove', (e) => { e.preventDefault(); dragRotate(e.touches[0]); });
       preview.addEventListener('touchend', endDrag);
+
+      // TAP TO CYCLE SCALE (non-drag)
+      preview.addEventListener('click', (e) => {
+        if (!wasDragged && selectedLayerIndex >= 0) {
+          cycleLayerScale();
+        }
+        wasDragged = false;
+      });
     }
 
     function saveCustomAvatar() {
