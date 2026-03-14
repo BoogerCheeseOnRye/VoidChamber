@@ -19,14 +19,10 @@
       display: none;
     }
 
-    /* PERFECT MOBILE CENTERING + LOCK */
     html {
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 100dvh;
       background: var(--abyss);
-      width: 100%;
     }
     body { 
       background: var(--abyss); 
@@ -39,7 +35,6 @@
       max-width: 480px;
       width: 100%;
       position: relative;
-      box-shadow: 0 0 40px rgba(255,0,204,0.15);
     }
     
     #abyss-fall {
@@ -77,9 +72,6 @@
       box-shadow: 0 0 15px #00ffff;
       background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
       flex-shrink: 0;
-      position: relative;
-      cursor: pointer;
-      user-select: none;
       z-index: 10;
     }
     .card {
@@ -191,14 +183,36 @@
     .vote-score-flash { animation: voteFlash 400ms ease; }
     @keyframes voteFlash { 0%{text-shadow:0 0 20px #ccff00;} 100%{text-shadow:none;} }
 
-    /* COMMENTS MODAL – optimized layout with media + voting */
+    /* COMMENTS MODAL – full-bleed header + timestamp in bottom-right only */
     #commentsModal .card {
       max-height: 92vh;
+    }
+    #commentsHeader {
+      padding: 1.25rem 1rem;
+      border-bottom: 2px solid #ff00cc;
+      background: #1a0033;
+      margin-left: -1rem;
+      margin-right: -1rem;
+      position: relative;
+      z-index: 10;
     }
     #commentsMediaContainer {
       padding: 1rem;
       background: #0a001f;
       border-bottom: 2px solid #ff00cc33;
+    }
+    #commentsInfoBar {
+      padding: 0.75rem 1rem;
+      background: #1a0033;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #modalTimestamp {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      z-index: 20;
     }
     #commentsMediaContainer iframe,
     #commentsMediaContainer video,
@@ -284,10 +298,12 @@
     </div>
   </div>
 
-  <!-- COMMENTS MODAL (SCREECHES) – optimized with media + voting -->
+  <!-- COMMENTS MODAL (SCREECHES) -->
   <div id="commentsModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div class="card rounded-3xl w-full max-w-2xl mx-4 h-[92vh] flex flex-col overflow-hidden">
-      <div class="p-5 border-b border-[#ff00cc]/30 flex items-center justify-between shrink-0">
+      
+      <!-- FULL-BLEED HEADER (extends past screen edges – no vertical borders) -->
+      <div id="commentsHeader" class="px-5 py-4 border-b-2 border-[#ff00cc] bg-[#1a0033] flex items-center justify-between -mx-5">
         <div id="modalPostHeader" class="neon-pink font-bold text-lg"></div>
         <button onclick="hideCommentsModal()" class="text-3xl neon-cyan">X</button>
       </div>
@@ -295,18 +311,20 @@
       <!-- EMBEDDED MEDIA -->
       <div id="commentsMediaContainer" class="p-5 bg-[#0a001f]"></div>
       
-      <!-- SEPARATE SCREECHES COUNT (left) + TIMESTAMP (right) at same height with even margins -->
+      <!-- SCREECHES COUNT (left) -->
       <div class="px-5 py-3 border-b border-[#ff00cc]/30 bg-[#1a0033] flex items-center justify-between">
         <span id="modalCommentCount" class="text-sm neon-cyan">SCREECHES <span class="neon-lime"></span></span>
-        <div id="modalTimestamp" class="timestamp"></div>
       </div>
       
-      <!-- VOTING (centered below the aligned line) -->
+      <!-- VOTING (centered) -->
       <div class="px-5 py-2 bg-[#1a0033] flex items-center justify-center gap-6">
         <div onclick="castVoteFromModal(1)" class="neon-chevron fa-solid fa-chevron-up text-[#ccff00] cursor-pointer"></div>
         <span id="modalVoteScore" class="neon-lime font-mono text-sm"></span>
         <div onclick="castVoteFromModal(-1)" class="neon-chevron fa-solid fa-chevron-down text-[#ff0088] cursor-pointer"></div>
       </div>
+      
+      <!-- TIMESTAMP ONLY IN BOTTOM-RIGHT CORNER (same height as before) -->
+      <div id="modalTimestamp" class="timestamp absolute bottom-[78px] right-5 z-20"></div>
       
       <div id="commentsList" class="flex-1 overflow-y-auto p-5 space-y-6"></div>
       
